@@ -1,5 +1,6 @@
 ---
 title: 'Data Manegement&Analysis Final Project'
+subtitle: 'Replication and Extention for Acemoglu, Naidu, Restrepo and Robinson (2019)'
 author: 
   - "(Name:) Shoya Abe (University ID:) 31B24001"
   - "(Name:) Honoka Ohtani (University ID:) 31B24002"
@@ -27,12 +28,12 @@ output:
 ## Setup
   
 ```{r setup, echo=TRUE, cache=FALSE, warning=FALSE, message=FALSE}
-  library(rmdformats)
-  library(knitr)
-  library(tinytex)
-  library(haven)
-  library(tidyverse)
-  library(fastDummies)
+library(rmdformats)
+library(knitr)
+library(tinytex)
+library(haven)
+library(tidyverse)
+library(fastDummies)
 
 ## Global options
 options(max.print="75")
