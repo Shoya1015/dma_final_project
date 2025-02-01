@@ -1,0 +1,71 @@
+---
+title: 'Data Manegement&Analysis Final Project'
+author: 
+  - "(Name:) Shoya Abe (University ID:) 31B24001"
+  - "(Name:) Honoka Ohtani (University ID:) 31B24002"
+date: "(Submission Due:) 2024/02/06"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+  html_document:
+    df_print: paged
+    toc: true
+    toc_depth: 3
+    number_sections: true
+  word_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+  '': 
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+## Setup
+  
+```{r setup, echo=TRUE, cache=FALSE, warning=FALSE, message=FALSE}
+  library(rmdformats)
+  library(knitr)
+  library(tinytex)
+  library(haven)
+  library(tidyverse)
+  library(fastDummies)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(fig.align="center",
+               echo=TRUE,
+               cache=TRUE,
+               prompt=FALSE,
+               tidy=FALSE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+theme_set(theme_bw(base_size = 14))
+```
+
+# About this Report
+
+## Project Type
+
+## Summary of the Paper
+
+### What the problem is
+
+### Why it is important
+
+### How you solve the problem
+
+### What we find
+
+## Data and Emprical Method
+
+# Replication
+
+# Extention
+
+
