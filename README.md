@@ -9,11 +9,17 @@
 ## **ディレクトリ構成**
 このプロジェクトでは、以下のディレクトリ構成を採用しています。
 
-project_root/ │── data/ # データフォルダ（オリジナルデータ・加工データ） │── scripts/ # Rスクリプト（データ処理、分析、可視化用） │── reports/ # RMarkdown を格納するフォルダ │── output/ # 生成した図や結果を保存するフォルダ │── docs/ # プロジェクトの説明用ドキュメント │── .gitignore # Git で管理しないファイルを指定 │── README.md # このプロジェクトの説明ファイル │── project.Rproj # RStudio のプロジェクトファイル
-
-markdown
-コピーする
-編集する
+```
+project_root/
+│── data/               # データフォルダ（オリジナルデータ・加工データ）
+│── scripts/            # Rスクリプト（データ処理、分析、可視化用）
+│── reports/            # RMarkdown を格納するフォルダ
+│── output/             # 生成した図や結果を保存するフォルダ
+│── docs/               # プロジェクトの説明用ドキュメント
+│── .gitignore          # Git で管理しないファイルを指定
+│── README.md           # このプロジェクトの説明ファイル
+│── project.Rproj       # RStudio のプロジェクトファイル
+```
 
 ### **フォルダの説明**
 - `data/` → 生データ（raw）および前処理後のデータ（processed）を格納
@@ -38,98 +44,101 @@ markdown
 
 1. `File` → `New Project` → `Version Control` → `Git`
 2. `Repository URL` に以下の GitHub リポジトリのURLを入力：
-https://github.com/your_username/project_name.git
-
-bash
-コピーする
-編集する
+   ```
+   https://github.com/your_username/project_name.git
+   ```
 3. `Create Project` をクリック
 
 または、**ターミナルで手動でクローン**
 ```sh
 git clone https://github.com/your_username/project_name.git
 cd project_name
-GitHub の運用ルール
-このプロジェクトでは GitHub を使用したバージョン管理 を行います。
+```
+
+---
+
+## **GitHub の運用ルール**
+このプロジェクトでは **GitHub を使用したバージョン管理** を行います。  
 基本的な操作は以下の通りです。
 
-1. 最新のコードを取得
+### **1. 最新のコードを取得**
 作業を始める前に、最新の状態を取得：
-
-sh
-コピーする
-編集する
+```sh
 git pull origin main
-2. ファイルの変更を Git に追加
-sh
-コピーする
-編集する
+```
+
+### **2. ファイルの変更を Git に追加**
+```sh
 git add .
 git commit -m "変更内容を簡単に記述"
 git push origin main
-3. ブランチを作成して作業
+```
+
+### **3. ブランチを作成して作業**
 大きな変更を加える場合は、新しいブランチを作成：
-
-sh
-コピーする
-編集する
+```sh
 git checkout -b feature_branch
+```
 変更を加えたら、以下の手順でコミット＆プッシュ：
-
-sh
-コピーする
-編集する
+```sh
 git add .
 git commit -m "新機能の追加"
 git push origin feature_branch
-その後、GitHub の Pull Request を利用して main ブランチにマージ。
+```
+その後、GitHub の `Pull Request` を利用して `main` ブランチにマージ。
 
-RStudio の設定
-ワーキングディレクトリ
-スクリプト内で here パッケージを活用し、ワーキングディレクトリを統一。
+---
 
-r
-コピーする
-編集する
+## **RStudio の設定**
+### **ワーキングディレクトリ**
+スクリプト内で `here` パッケージを活用し、ワーキングディレクトリを統一。
+
+```r
 library(here)
 setwd(here::here())
-データ管理
-データの保存
-生データ（raw data） → data/raw/ に保存
-前処理後のデータ → data/processed/ に保存
-.rds ファイルの使用（読み書きが速いため推奨）
-r
-コピーする
-編集する
+```
+
+---
+
+## **データ管理**
+### **データの保存**
+- **生データ（raw data）** → `data/raw/` に保存
+- **前処理後のデータ** → `data/processed/` に保存
+- **.rds ファイルの使用**（読み書きが速いため推奨）
+
+```r
 saveRDS(df, file = "data/processed/cleaned_data.rds")
 df <- readRDS("data/processed/cleaned_data.rds")
-Rスクリプトの管理
-スクリプトの分割
-スクリプトを以下のように分割し、source() で統合的に管理。
+```
 
-bash
-コピーする
-編集する
+---
+
+## **Rスクリプトの管理**
+### **スクリプトの分割**
+スクリプトを以下のように分割し、`source()` で統合的に管理。
+
+```
 scripts/
 │── master.R          # すべてのスクリプトを統合して実行
 │── data_cleaning.R   # データの前処理
 │── analysis.R        # データ分析
 │── visualization.R   # グラフ作成
-master.R の例
+```
 
-r
-コピーする
-編集する
+**`master.R` の例**
+```r
 source("scripts/data_cleaning.R")
 source("scripts/analysis.R")
 source("scripts/visualization.R")
-RMarkdown によるドキュメント化
-RMarkdown のフォーマット
-分析レポートを reports/ に保存し、結果をまとめる。
+```
 
-rmd
-コピーする
-編集する
+---
+
+## **RMarkdown によるドキュメント化**
+### **RMarkdown のフォーマット**
+分析レポートを `reports/` に保存し、結果をまとめる。
+
+```rmd
 ---
 title: "データ分析レポート"
 author: "チーム名"
@@ -140,31 +149,28 @@ output: html_document
 ## データの概要
 ```{r}
 summary(df)
-arduino
-コピーする
-編集する
+```
+```
 
 **RMarkdown のレンダリング**
 ```sh
 Rscript -e "rmarkdown::render('reports/analysis_report.Rmd')"
-ワークフローの確立
-日々の作業の流れ
-git pull で最新のコードを取得
-scripts/ 内のスクリプトを編集
-git commit & git push
-reports/ の .Rmd を更新し、レポートを作成
-git push してチームと共有
-お問い合わせ
-プロジェクトに関する質問や提案がある場合は、GitHub の Issues を活用してください。
+```
 
-markdown
-コピーする
-編集する
+---
 
-この `README.md` を **RStudio で編集して GitHub にプッシュ** すれば、チームメンバーがベストプラクティスを簡単に理解できるようになります！ 🚀
+## **ワークフローの確立**
+### **日々の作業の流れ**
+1. `git pull` で最新のコードを取得
+2. `scripts/` 内のスクリプトを編集
+3. `git commit` & `git push`
+4. `reports/` の `.Rmd` を更新し、レポートを作成
+5. `git push` してチームと共有
 
+---
 
+## **お問い合わせ**
+プロジェクトに関する質問や提案がある場合は、GitHub の `Issues` を活用してください。
 
-
-
+---
 
