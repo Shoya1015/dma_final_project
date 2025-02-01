@@ -4,11 +4,3 @@
 .RData
 .Rproj.user/
 *.Rproj
-
-# データフォルダ（生データはGit管理しない）
-data/raw/
-data/processed/
-
-# 出力フォルダ（キャッシュデータ）
-output/
-
