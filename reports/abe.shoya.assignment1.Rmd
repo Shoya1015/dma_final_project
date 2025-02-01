@@ -1,0 +1,548 @@
+---
+title: 'Assignment'
+author: "(Name:) Shoya Abe (University ID:) 31B24001"
+date: "(Submission Due:) 2024/12/16"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+  '': default
+---
+  
+```{r setup, echo=FALSE, cache=FALSE, warning=FALSE, message=FALSE}
+  library(rmdformats)
+  library(knitr)
+  library(tinytex)
+  library(haven)
+  library(tidyverse)
+  library(fastDummies)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(fig.align="center",
+               echo=TRUE,
+               cache=TRUE,
+               prompt=FALSE,
+               tidy=FALSE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+theme_set(theme_bw(base_size = 14))
+
+# Specify directories
+# setwd()
+# data_dir <- ""
+# fig_dir <- ""
+# out_dir <-  ""
+```
+
+
+Instruction:
+
+- Click the link below to access data.
+- Submit your code on CLE by 2024/12/16. 
+- Provide answers/solutions using RMarkdown. 
+- Include your name in the `author` in the header. 
+- Change directories in the environment. 
+- Submit the assignment in either PDF or HTML. 
+- The filename should include your name  (e.g., `takuma.kamada.assignment1.pdf`).
+
+
+
+You can access the three datasets for this assignment via
+[**my Dropbox**](https://www.dropbox.com/scl/fo/yaikd9d0xjw32nn56bwrx/AMW1lHEEUqumAS-T67qZJqU?rlkey=q4dc17qa52t4ngclc5wzq1ds7&st=v0jyfesn&dl=0), and  they must be utilized to answer all the questions: 
+   
+   - For Question 1 and 2: `ipums.csv` provides individual- and household-level variables from the American Community Survey in 2019. The data sourced from IPUMS (International Integrated Public Use Microdata Series). `codebook.pdf` is the codebook  for variables in this dataset. 
+   
+   - For Question 3: `ny.tract.2007.csv` - `ny.tract.2013.csv` provide the number of Whites, Hispanics, Asians, and Blacks at the census tract level in New York from 2008 to 2013.
+   
+
+
+\newpage 
+
+# Question 1
+**Instruction:**
+
+- Refer to the codebook for variable description. 
+
+- Limit the sample to respondents aged 23-65 and employed. 
+
+- Consider how to handle zero in the wage variable. 
+
+- Include your code and appropriate comments, and be sure to have each section with its corresponding question number (e.g., `# Q2-1`, `# Q2-2`, etc.) at the beginning of that section's code.
+
+```{r}
+# Load data
+df_1 <- read_csv(here::here("1_data", "ipums.csv"))
+
+# Check
+glimpse(df_1)
+```
+
+```{r}
+# Preprocessing the main data frame:
+#   - Limit the sample to ages between 23 and 65
+#   - Include only employed individuals
+#   - Remove observations with zero wages
+df_1 <- df_1 |> 
+  filter(
+    between(AGE, 23, 65), 
+    EMPSTAT == 1, 
+    INCWAGE != 0
+  )
+```
+
+
+ **Q1-1 (5 points):** Create a categorical education variable from the `EDUCD` variable, where different education levels are transformed into meaningful groups. Make sure that they are ordered from lowest to highest education level. Display the number of respondents as well as its percentage in each category. 
+  
+  - `No Schooling`; `Less than High School`; `Some High School` (Grade9-12); `High School Diploma/GED`; `Some College`; `Bechelor's Degree`; `Master's Degree`; `Professional Degree`; `Doctoral Degree`
+  
+```{r}
+# Define ordered education levels 
+# from highest to lowest and then reverse it to get lowest-to-highest
+education_levels <- c(
+  "Doctoral Degree",
+  "Professional Degree",
+  "Master's Degree",
+  "Bachelor's Degree",
+  "Some College",
+  "High School Diploma/GED",
+  "Some High School",
+  "Less than High School",
+  "No Schooling"
+)
+
+lowest_to_highest_levels <- rev(education_levels)
+```
+
+  
+```{r}
+# Q1-1
+df_1 <- df_1 %>%
+  mutate(
+    education_category = case_when(
+      EDUCD %in% c(0,1,2) ~ "No Schooling",
+      EDUCD %in% c(10:17,20:26) ~ "Less than High School",
+      EDUCD %in% c(30,40,50,60,61) ~ "Some High School",
+      EDUCD %in% c(62:64) ~ "High School Diploma/GED",
+      EDUCD %in% c(65,70,71,80,81,82,83,90) ~ "Some College",
+      EDUCD %in% c(100,101) ~ "Bachelor's Degree",
+      EDUCD == 114 ~ "Master's Degree",
+      EDUCD == 115 ~ "Professional Degree",
+      EDUCD == 116 ~ "Doctoral Degree"
+    ),
+    education_category = factor(
+      education_category, 
+      levels = lowest_to_highest_levels
+    )
+  ) %>%
+  filter(!is.na(education_category))
+
+# Calculate counts and percentages by education category
+education_summary <- df_1 %>%
+  count(education_category) %>%
+  mutate(percentage = 100 * n / sum(n)) %>%
+  arrange(education_category)
+
+# Print the summary table
+print(education_summary)
+```
+
+
+ **Q1-2 (5 points):**  Conan-kun wants to understand how job diversity varies across different education levels. Calculate the Herfindahl-Hirschman Index (HHI) for each education level using the industry variable (`IND`) to measure how concentrated or diverse the employment patterns are across industries within each education group. A higher HHI indicates that people with that education level are concentrated in fewer industries, while a lower HHI shows they are more evenly spread across different industries. The HHI formula is: 
+ 
+  $$HHI_{e}=\sum_{i} s_{i,e}^2$$
+
+where:
+
+ - $s_{i,e}$ is the proportion of workers in industry $i$ among all workers with education level $e$. 
+ 
+ - The index ranges from close to 0 (indicating workers are evenly spread across many industries) to 1 (indicating all workers are concentrated in a single industry).
+ 
+```{r}
+# Q1-2
+hhi_table <- df_1 %>%
+  count(education_category, IND) %>%
+  group_by(education_category) %>%
+  mutate(share = n / sum(n)) %>%
+  summarise(
+    HHI = sum(share^2),
+    .groups = "drop"
+  ) %>%
+  arrange(education_category)
+
+# Print the HHI table
+print(hhi_table)
+```
+
+ **Q1-3 (5 points):** Create a graph showing the HHI values across education levels, with education levels ordered from lowest to highest and proper formatting for the axes and labels. 
+ 
+```{r, fig.width=9, fig.height=6}
+# Q1-3
+hhi_table %>%
+  mutate(
+    education_category = factor(
+      education_category, 
+      levels = lowest_to_highest_levels
+    )
+  ) %>%
+  ggplot(aes(x = education_category, y = HHI)) +
+  geom_col(fill = "skyblue") +
+  scale_x_discrete("Education Level") +
+  scale_y_continuous("HHI") +
+  labs(title = "Figure1: HHI by Education Level") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+ 
+ **Q1-4 (5 points):** Create a graph showing the median and standard deviation of wages across education levels, with education levels ordered from lowest to highest and proper formatting for the axes and labels. 
+
+```{r, fig.width=9, fig.height=6}
+# Q1-4
+
+# Calculate median and SD of wages by education category
+wage_stats <- df_1 %>%
+  group_by(education_category) %>%
+  summarise(
+    median_wage = median(INCWAGE, na.rm = TRUE),
+    sd_wage = sd(INCWAGE, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Create a bar plot with error bars for median wage ± SD
+ggplot(
+  wage_stats, 
+  aes(x = education_category, y = median_wage)
+  ) +
+  geom_col(fill = "skyblue") +
+  geom_errorbar(
+    aes(ymin = median_wage - sd_wage, ymax = median_wage + sd_wage),
+    width = 0.2,
+    color = "orange",
+    size = 1
+  ) +
+  scale_x_discrete("Education Level", limits = levels(wage_stats$education_category)) +
+  scale_y_continuous("Wage", labels = scales::comma) +
+  labs(title = "Figure 2: Median and Standard Deviation of Wages by Education Level") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+ 
+ 
+ **Q1-5 (5 points):** Explain patterns observed in Q1-3.
+ 
+**Answer:** 
+
+There are three points that can be read from Figure 1.
+
+First, the HHI for Doctoral Degree holders is much higher than for other education levels. This suggests that individuals with doctoral degrees are concentrated in a small number of industries. I think this is because they often work as researchers in universities.
+
+Second, the HHI increases for those who pursue graduate education. This may indicate that people who go to graduate school have specialized preferences, leading them to work in similar industries.
+
+Third, the relationship between education level and HHI appears quadratic. HHI is higher for individuals with either very high or very low education levels, while it is lower for those with average education levels. This may be because individuals with average education levels are more numerous and tend to work in a wider variety of industries.
+
+ **Q1-6 (5 points):** Explain patterns observed in Q1-4.
+ 
+**Answer:** 
+
+There are two points that can be read from Figure 2.
+
+First, when people have at least a bachelor’s degree, both the median wage and its standard deviation increase. This suggests that those with a college degree or higher earn a wage premium. In contrast, for those with less than a college degree, there aren’t large differences in wages or standard deviations.
+
+Second, people with professional degrees have the highest median wage and a very large standard deviation. This shows that wages for those with professional degrees vary greatly.
+
+
+# Question 2
+**Instruction:**
+
+- Refer to the codebook for variable description. 
+
+- Limit the sample to respondents aged 23-65 and employed. 
+
+- Consider how to handle zero in the wage variable. 
+
+- Use the `race` and `hispan` variables to create variables on ethno-racial groups: (1) non-Hispanic Whites, (2) non-Hispanic Blacks, (3) Native Americans, (4) non-Hispanic Asians (combining `Chinese`, `Japanese`, and `Other Asian or Pacific Islander`), (5) Hispanics, and (6) non-Hispanic other racial groups, where others mean other racial groups than Whites, Blacks, Native, or Asians. 
+
+- Use `facet_wrap()` to create separate plots by group.
+
+- Include your code and appropriate comments, and be sure to have each section with its corresponding question number (e.g., `# Q2-1`, `# Q2-2`, etc.) at the beginning of that section's code.
+
+
+ **Q2-1 (5 points):** Create a graph, with proper formatting for the axes and labels,  that shows income measured by median and standard deviation by age across Whites, Blacks, Hispanics, and Asians. 
+ 
+```{r}
+# Q2-1
+
+# Create ethno-racial group variable
+df_1 <- df_1 %>%
+  mutate(
+    ethno_racial_group = case_when(
+      RACE == 1 & HISPAN == 0 ~ "Non-Hispanic White",
+      RACE == 2 & HISPAN == 0 ~ "Non-Hispanic Black",
+      RACE == 3 & HISPAN == 0 ~ "Native American",
+      RACE %in% c(4,5,6) & HISPAN == 0 ~ "Non-Hispanic Asian",
+      HISPAN > 0 ~ "Hispanic",
+      TRUE ~ "Non-Hispanic Other"
+    )
+  )
+
+# Calculate median and sd by age and group
+summary_stats <- df_1 %>%
+  group_by(AGE, ethno_racial_group) %>%
+  summarise(
+    median_income = median(INCWAGE, na.rm = TRUE),
+    sd_income = sd(INCWAGE, na.rm = TRUE),
+    .groups = 'drop'
+  )
+```
+
+```{r, fig.width=11, fig.height=6}
+# Plot with facet_wrap
+summary_stats %>%
+  filter(ethno_racial_group %in% c("Non-Hispanic White", 
+                                   "Non-Hispanic Black", 
+                                   "Hispanic", 
+                                   "Non-Hispanic Asian")) %>%
+  ggplot(aes(x = AGE, y = median_income)) +
+  geom_line(color = "orange", size = 1) +
+  geom_ribbon(aes(ymin = median_income - sd_income, ymax = median_income + sd_income),
+              fill = "skyblue", alpha = 0.4) +
+  facet_wrap(~ ethno_racial_group) +
+  labs(title = "Median and standard deviation of Income by Age and Group",
+       x = "Age", y = "Income")
+```
+
+ **Q2-2 (5 points):** Explain income trends observed in Q2-1.
+
+  - In your explanation, discuss both income disparities across racial/ethnic groups and within each group.
+
+**Answer:** 
+
+There are three points that can be read from Figure 3.
+
+First, compared to non-Hispanic Asians and non-Hispanic whites, Hispanics and non-Hispanic blacks have lower median and standard deviations of wage. At all ages, Hispanics and non-Hispanic blacks earn lower wages. This suggests that there is a wage gap between ethnic groups.
+
+Second, there are wage gaps between non-Hispanic Asians and non-Hispanic whites, especially between the ages of 25 and 45. In particular, when looking at median wages, there is a gap between Non-Hispanic Asians and Non-Hispanic Whites before age 45. This may indicate that skills may differ between Non-Hispanic Asians and Non-Hispanic Whites, especially among younger generations.
+
+Third, wage differentials may also exist within the same ethnic group. For example, the standard deviation for non-Hispanic Asians and non-Hispanic whites is very high. This suggests that some people earn very high wages while others do not.
+
+ **Q2-3 (10 points) Choose A or B:** 
+ 
+ **Q2-3,A:** Based on the racial/ethnic income trends observed in Q2-1 and your explanation in Q2-2, conduct an additional analysis to better understand what drives these income differences. Explain your reasoning for choosing this specific analysis.
+
+   - Note: There is no right or wrong here so far as good justification for an analysis is made.
+
+
+  **Written Answer:** 
+  
+From Figure 3, it seems likely that racial/ethnic differences affect wages. One possible channel for these effects is differences in education level. Here, I try to visualize how education levels differ among racial/ethnic groups. Figure 4 below shows the distribution of education levels by racial/ethnic group.
+
+```{r, fig.width=11, fig.height=6}
+# Q2-3
+education_race_density <- df_1 %>%
+  filter(!is.na(education_category)) %>%
+  group_by(ethno_racial_group, education_category) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(ethno_racial_group) %>%
+  mutate(
+    percentage = n / sum(n), 
+    education_numeric = as.numeric(factor(
+      education_category, 
+      levels = c(
+        "No Schooling",
+        "Less than High School",
+        "Some High School",
+        "High School Diploma/GED",
+        "Some College",
+        "Bachelor's Degree",
+        "Master's Degree",
+        "Professional Degree",
+        "Doctoral Degree"
+      )
+    ))
+  ) %>%
+  ungroup()
+
+# Plot
+ggplot(
+  education_race_density, 
+  aes(
+    x = education_numeric, 
+    y = percentage, 
+    group = ethno_racial_group,
+    fill = ethno_racial_group,
+    color = ethno_racial_group
+    )
+  ) +
+  geom_density(
+    stat = "identity", 
+    alpha = 0.3, 
+    adjust = 1.5, 
+    size = 0.5
+  ) +
+  scale_x_continuous(
+    breaks = 1:9, 
+    labels = c(
+      "No Schooling",
+      "Less than High School",
+      "Some High School",
+      "High School Diploma/GED",
+      "Some College",
+      "Bachelor's Degree",
+      "Master's Degree",
+      "Professional Degree",
+      "Doctoral Degree"
+      )
+    ) +
+  labs(
+    title = "Figure4: Distribution of Education Levels by Racial/Ethnic Group",
+    x = "Education Level",
+    y = "Density",
+    fill = "Racial/Ethnic Group",
+    color = "Racial/Ethnic Group"
+    ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Figure 4 uses kernel density curves to show the distribution of education levels by racial/ethnic group. The "Density" values themselves have no direct meaning, but higher density means a larger proportion of people in that racial/ethnic group have a certain education level. From Figure 4, we can see that the distribution of education levels varies among racial/ethnic groups. Education level is lower on the left and higher on the right. Therefore, Hispanics and Non-Hispanic Blacks have lower education levels compared to other groups. In contrast, the Non-Hispanic Asian distribution is shifted to the right, indicating that they tend to have higher education levels than other groups. This additional analysis suggests that these differences in education levels among racial/ethnic groups may also affect wages.
+
+ **Q2-3,B:** Based on the patterns observed in Q1, Q2-1, or Q2-3 (or combination of some or all of these), develop and explore a new research question, and conduct a corresponding analysis with variables in the dataset. If relevant measures are not available, describe what additional data would be needed.  
+ 
+ **Written Answer:** 
+
+# Question 3
+
+**Instruction:**
+
+ - Include your code and appropriate comments, and be sure to have each section with its corresponding question number (e.g., `# Q2-1`, `# Q2-2`, etc.) at the beginning of that section's code.
+ 
+ - For county names, refer to `FIPS_County_Code.xlsx`, if necessary. 
+
+ - `ny.tract.2007.csv` - `ny.tract.2013.csv` contain the following variables. 
+
+**Variable description:**
+
+| Variable Name    | Description                                                                |
+|------------------|----------------------------------------------------------------------------|
+| `tractfips` | ID  (fips code) at the census tract (neighborhood) level    |
+| `countyfips` | ID  (fips code) at the county level |
+| `statefips`   | ID  (fips code) at the state level |
+| `midyear`       | Survey year |
+| `nhw_pop` | Number of non-Hispanic Whites at the census tract level |
+| `hisp_pop` | Number of Hispanics at the census tract level |
+| `asn_pop` | Number of non-Hispanic Asians at the census tract level |
+| `blk_pop` | Number of  non-Hispanic Blacks at the census tract level |
+
+
+         
+Residential segregation refers to the extent to which members of different groups (e.g., racial groups) are unevenly distributed across space. The following is one of the most commonly used indices for segregation:
+
+$$Index_c = \frac{1}{2} \times \sum^{n}_{i} |\frac{asn_{ic}}{ASN_c} - \frac{wht_{ic}}{Wht_c}|$$
+
+Where $asn_{ic}$ is the number of Asians in census tract (neighborhood) $i$ in county $c$, $ASN_c$ is the number of Asians in county $c$, and the same applies to $wht_{ic}$ and $Wht_c$ for Whites. $IndexA_c$ captures the degree to which Asians and Whites are unequally distributed across neighborhoods in county $c$. In particular, it captures proportions to which Asians (or Whites) need to exchange their neighborhoods to obtain the equal distribution.
+
+For this index, higher value indicates higher segregation.
+
+**Q3-1 (5 points):** Use `for` to create a dataset from 2007 to 2013 at the census-tract-by-year level in a long format.
+
+```{r}
+# Q3-1
+
+# Specify the path
+my_path <- here::here("1_data", "ny_tract")
+
+# Retrieve file names for each year
+file_list <- list.files(
+  path = my_path, 
+  pattern = "ny\\.tract\\.(2007|2008|2009|2010|2011|2012|2013)\\.csv", 
+  full.names = TRUE
+)
+
+# Initialize a list to store data for each year
+df_ny_tract_year <- list()
+
+# Use a for loop to read and process each file
+for (i in seq_along(file_list)) {
+  # Extract year from the file name
+  year <- as.integer(gsub(".*ny\\.tract\\.(\\d{4})\\.csv", "\\1", file_list[i]))
+  
+  # Read the CSV file and add the year column
+  temp_data <- read_csv(file_list[i]) %>% mutate(year = year)
+  
+  # Assign the dataset to a variable in the global environment
+  assign(paste0("df_ny_tract_", year), temp_data, envir = .GlobalEnv)
+  
+  # Store the data in the list
+  df_ny_tract_year[[as.character(year)]] <- temp_data
+}
+
+# Bind all yearly datasets into one long data frame
+df_ny_tract_long <- bind_rows(df_ny_tract_year)
+
+# Check
+glimpse(df_ny_tract_long)
+```
+
+**Q3-2 (5 points):** Calculate $Index_c$ at the county-by-year level.
+
+```{r}
+# Q3-2
+
+# Calculate
+county_year_index <- df_ny_tract_long %>%
+  group_by(statefips, countyfips, year) %>%
+  summarise(
+    total_asian_pop = sum(asn_pop, na.rm = TRUE), 
+    total_white_pop = sum(nhw_pop, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  left_join(df_ny_tract_long, by = c("statefips", "countyfips", "year")) %>%
+  mutate(
+    tract_contribution = abs((asn_pop / total_asian_pop) - (nhw_pop / total_white_pop))
+  ) %>%
+  group_by(statefips, countyfips, year) %>%
+  summarise(
+    segregation_index = 0.5 * sum(tract_contribution, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Print results
+print(county_year_index)
+```
+
+
+**Q3-3 (5 points):** Display top ten counties that experienced the largest decline in segregation from 2007 to 2013 in terms its percentage change.
+  
+  - Step 1: Transform the county-by-year data from long format (where years are in rows) to wide format (where years are columns).  
+  - Step 2: Calculate the percentage change in segregation between 2007 and 2013.
+  - Step 3: Display the top 10 county fips codes or names. 
+
+```{r}
+# Q3-3
+
+# Step 1
+county_index_wide <- county_year_index %>%
+  pivot_wider(
+    names_from = year,
+    values_from = segregation_index,
+    names_prefix = "Year_"
+  )
+
+# Step 2
+county_index_wide <- county_index_wide %>%
+  mutate(
+    perc_change = ((Year_2013 - Year_2007) / Year_2007) * 100
+  )
+
+# Step 3
+top_10_decline_counties <- county_index_wide %>%
+  arrange(perc_change) %>%
+  slice_head(n = 10) %>%
+  select(statefips, countyfips, perc_change)
+
+# Print top 10 counties
+print(top_10_decline_counties)
+```
+
+
