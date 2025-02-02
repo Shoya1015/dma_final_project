@@ -25,15 +25,19 @@ output:
     number_sections: true
 ---
 
+\newpage
+
 ## Setup
   
 ```{r setup, echo=TRUE, cache=FALSE, warning=FALSE, message=FALSE}
-library(rmdformats)
-library(knitr)
-library(tinytex)
-library(haven)
-library(tidyverse)
-library(fastDummies)
+pacman::p_load(
+  rmdformats,
+  knitr,
+  tinytex,
+  haven,
+  tidyverse,
+  fastDummies
+)
 
 ## Global options
 options(max.print="75")
