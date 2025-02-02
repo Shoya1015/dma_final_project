@@ -10,7 +10,7 @@ pacman::p_load(tidyverse, haven)
 data <- read_dta("data/raw/DDCGdata_final.dta")
 
 # 変数 "_ID" を "id" に名称変更し、各id（国や対象）のデータを年順に並べ替え
-data <- data %>%
+data_f1 <- data %>%
   rename(id = "_ID") %>%
   group_by(id) %>%
   arrange(year) %>%
@@ -23,7 +23,7 @@ data <- data %>%
 #  - もし直前が非民主主義（0）で、現在が民主主義（1）なら「民主化転換」として 1
 #  - もし直前も現在も非民主主義なら対照群として 0
 #  - それ以外（すでに民主主義など）は NA とする
-data <- data %>%
+data_f1 <- data_f1 %>%
   group_by(id) %>%
   arrange(year) %>%
   mutate(prev_dem = lag(dem, 1)) %>%  # 1期前の "dem" を取得
@@ -38,7 +38,7 @@ data <- data %>%
 # 4. GDPのラグ値作成と欠損値の除外
 # -----------------------------------------------------------
 # GDP (変数 y) の1期前から4期前までの値を作成し、いずれかが欠損している行は除外
-data <- data %>%
+data_f1 <- data_f1 %>%
   group_by(id) %>%
   arrange(year) %>%
   mutate(
@@ -69,7 +69,7 @@ data <- data %>%
 # (a) 民主化転換前の期間：t = -15 ～ -2
 for (t in -15:-2) {
   col_name <- paste0("gdpDiff_m", abs(t))  # 例: t = -15 → "gdpDiff_m15"
-  data <- data %>%
+  data_f1 <- data_f1 %>%
     group_by(id) %>%
     arrange(year) %>%
     mutate(!!col_name := lag(y, abs(t)) - lag1) %>%
@@ -77,12 +77,12 @@ for (t in -15:-2) {
 }
 
 # (b) 基準期間：t = -1 は基準なので 0 とする
-data <- data %>%
+data_f1 <- data_f1 %>%
   mutate(gdpDiff_m1 = 0)
 
 # (c) 民主化転換直後およびその後の期間：t = 0 ～ 30
 # まず、t = 0 の場合は現在のyとの差分
-data <- data %>%
+data_f1 <- data_f1 %>%
   group_by(id) %>%
   arrange(year) %>%
   mutate(gdpDiff_0 = y - lag1) %>%
@@ -91,7 +91,7 @@ data <- data %>%
 # t > 0 の場合は lead を使って未来のGDPを取得
 for (t in 1:30) {
   col_name <- paste0("gdpDiff_p", t)  # 例: t = 1 → "gdpDiff_p1"
-  data <- data %>%
+  data_f1 <- data_f1 %>%
     group_by(id) %>%
     arrange(year) %>%
     mutate(!!col_name := lead(y, t) - lag1) %>%
@@ -99,7 +99,7 @@ for (t in 1:30) {
 }
 
 # ※ 分析対象は transition (民主化転換) の値が判定できる観測に限定
-data <- data %>% filter(!is.na(transition))
+data_f1 <- data_f1 %>% filter(!is.na(transition))
 
 # -----------------------------------------------------------
 # 6. 回帰調整推定量（ATET）を求める関数の定義
@@ -159,7 +159,7 @@ for (i in seq_along(relative_times)) {
     # tが0の場合は "gdpDiff_0"、正の場合は "gdpDiff_p{t}"
     col_name <- if(t_val == 0) "gdpDiff_0" else paste0("gdpDiff_p", t_val)
   }
-  atets[i] <- estimateATET(data, col_name)
+  atets[i] <- estimateATET(data_f1, col_name)
 }
 
 # 結果をデータフレームにまとめる
@@ -173,4 +173,5 @@ ggplot(results_df, aes(x = RelativeTime, y = ATET)) +
   scale_x_continuous(breaks = seq(-15, 30, 5)) +
   labs(x = "Years around Democratization", 
        y = "Change in GDP per capita (log points)") +
-  theme_minimal()
+  theme_bw()
+
