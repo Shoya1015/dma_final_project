@@ -15,3 +15,6 @@ lubridate
 fastDummies
 skimr
 kableExtra
+plm
+stargazer
+texreg
