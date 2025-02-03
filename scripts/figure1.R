@@ -168,10 +168,15 @@ results_df <- data.frame(RelativeTime = relative_times, ATET = atets)
 # -----------------------------------------------------------
 # 8. 結果のプロット
 # -----------------------------------------------------------
-ggplot(results_df, aes(x = RelativeTime, y = ATET)) +
+figure_1 <- ggplot(results_df, aes(x = RelativeTime, y = ATET)) +
   geom_line(color = "black") +
   scale_x_continuous(breaks = seq(-15, 30, 5)) +
   labs(x = "Years around Democratization", 
        y = "Change in GDP per capita (log points)") +
   theme_bw()
+
+# -----------------------------------------------------------
+# 9. プロットの保存
+# -----------------------------------------------------------
+ggsave("output/figure_1.pdf", width = 14, height = 8, units = "cm")
 

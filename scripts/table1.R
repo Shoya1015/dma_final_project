@@ -1,3 +1,11 @@
+# 0. パッケージの読み込み
+pacman::p_load(
+  tidyverse,
+  haven,
+  knitr,
+  kableExtra
+)
+
 # 1. データ読み込み
 data <- read_dta("data/raw/DDCGdata_final.dta")
 
@@ -5,7 +13,7 @@ data <- read_dta("data/raw/DDCGdata_final.dta")
 var_info <- tibble(
   var = c("gdppercapitaconstant2000us",  # 実データ上の列名
           "ginv",
-          "radewb",
+          "tradewb",
           "prienr",
           "secenr",
           "taxratio",
@@ -67,12 +75,12 @@ summary_table <- lapply(var_list, function(x) calc_summary(data, x, dem)) %>%
   rename(Variable = label)
 
 # 6. kableExtra で PDF 向けの表に整形
-#   - 多段ヘッダを使い、Nondemocracies / Democracies で3列ずつまとめています
+#    - 多段ヘッダを使い、Nondemocracies / Democracies で3列ずつまとめています
 colnames(summary_table) <- c("Variable",
-                             "Observations","Mean","SD",
-                             "Observations","Mean","SD")
+                             "Observations", "Mean", "SD",
+                             "Observations", "Mean", "SD")
 
-summary_table %>%
+latex_table <- summary_table %>%
   kbl(
     caption = "Summary Statistics by Democracy Status",
     format = "latex",
@@ -82,3 +90,5 @@ summary_table %>%
   add_header_above(c(" " = 1, "Nondemocracies" = 3, "Democracies" = 3)) %>%
   kable_styling(latex_options = c("HOLD_position", "striped"))
 
+# 7. テーブルを tex 形式のファイルに出力する
+save_kable(latex_table, file = "output/table_1.tex")
