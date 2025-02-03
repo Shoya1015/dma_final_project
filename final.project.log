@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.12.3)  3 FEB 2025 21:36
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.12.3)  3 FEB 2025 22:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -594,10 +594,10 @@ LaTeX Font Warning: Font shape `T1/lmtt/bx/it' in size <10> not available
 [5]
 
 [6]
-<output/figure_1.pdf, id=99, 397.485pt x 226.8475pt>
+<output/figure_1.pdf, id=104, 397.485pt x 226.8475pt>
 File: output/figure_1.pdf Graphic file (type pdf)
 <use output/figure_1.pdf>
-Package pdftex.def Info: output/figure_1.pdf  used on input line 382.
+Package pdftex.def Info: output/figure_1.pdf  used on input line 387.
 (pdftex.def)             Requested size: 397.48402pt x 226.84694pt.
 
 
@@ -617,11 +617,11 @@ Overfull \hbox (3.5516pt too wide) in paragraph at lines 5--23
 [11]
 
 [12]
-Underfull \vbox (badness 10000) detected at line 760
+Underfull \vbox (badness 10000) detected at line 765
  []
 
 
-Underfull \vbox (badness 10000) detected at line 760
+Underfull \vbox (badness 10000) detected at line 765
  []
 
 
@@ -630,13 +630,97 @@ Underfull \vbox (badness 10000) detected at line 760
 
 [14]
 
-[15] (./output/table_2_FE.tex) (./output/TableMain_GMM.tex)
+[15] (./output/table_2_FE.tex)
 
 [16]
 
 [17{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 924--929
+ [] [] 
+ []
 
-[18] (./final.project.aux)
+
+Overfull \hbox (39.35562pt too wide) in alignment at lines 929--934
+ [] [] 
+ []
+
+
+Overfull \hbox (39.35562pt too wide) in alignment at lines 934--936
+ [] [] 
+ []
+
+
+Overfull \hbox (39.35562pt too wide) in alignment at lines 936--938
+ [] [] 
+ []
+
+
+Overfull \hbox (39.35562pt too wide) in alignment at lines 938--1178
+ [] [] 
+ []
+
+
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1178--1418
+ [] [] 
+ []
+
+[18] [19] [20] [21]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1418--1658
+ [] [] 
+ []
+
+[22] [23] [24] [25] [26]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1658--1898
+ [] [] 
+ []
+
+[27] [28] [29] [30]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1898--2138
+ [] [] 
+ []
+
+[31] [32] [33] [34]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 2138--2351
+ [] [] 
+ []
+
+[35] [36] [37] [38] [39] [40] [41] [42]
+
+[43]
+Underfull \vbox (badness 10000) detected at line 2564
+ []
+
+
+Underfull \vbox (badness 10000) detected at line 2564
+ []
+
+
+
+[44]
+Underfull \vbox (badness 10000) detected at line 2564
+ []
+
+
+Underfull \vbox (badness 10000) detected at line 2564
+ []
+
+
+
+[45]
+Underfull \vbox (badness 10000) detected at line 2564
+ []
+
+
+Underfull \vbox (badness 10000) detected at line 2564
+ []
+
+
+
+[46] (./output/TableMain_GMM.tex)
+
+[47]
+
+[48] (./final.project.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 1
 L3 programming layer <2024-11-02>
@@ -646,18 +730,18 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 13426 strings out of 475289
- 209279 string characters out of 5766684
- 633266 words of memory out of 5000000
- 35995 multiletter control sequences out of 15000+600000
- 608491 words of font info for 81 fonts, out of 8000000 for 9000
+ 13470 strings out of 475289
+ 209694 string characters out of 5766684
+ 662831 words of memory out of 5000000
+ 36005 multiletter control sequences out of 15000+600000
+ 612435 words of font info for 81 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 89i,12n,93p,534b,496s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy5.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtk10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtko10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtti10.pfb>
-Output written on final.project.pdf (18 pages, 327314 bytes).
+ 89i,12n,93p,639b,577s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy5.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtk10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtko10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
+Output written on final.project.pdf (48 pages, 357163 bytes).
 PDF statistics:
- 344 PDF objects out of 1000 (max. 8388607)
- 287 compressed objects within 3 object streams
- 54 named destinations out of 1000 (max. 500000)
- 246 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 496 PDF objects out of 1000 (max. 8388607)
+ 407 compressed objects within 5 object streams
+ 88 named destinations out of 1000 (max. 500000)
+ 270 words of extra memory for PDF output out of 10000 (max. 10000000)
 
