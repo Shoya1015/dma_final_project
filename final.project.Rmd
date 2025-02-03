@@ -95,79 +95,58 @@ summarize_data(data)
 ### Preprocessing
 
 ```{r}
-# Rename '_ID' to 'id', sort by year within each id, then ungroup
+# 1. Basic transformations: Rename ID, sort by year, create lagged democracy indicator, and compute lags for y
 data_f1 <- data %>%
-  rename(id = "_ID") %>%
-  group_by(id) %>%
-  arrange(year) %>%
+  rename(id = "_ID") %>%                   # Rename "_ID" to "id"
+  group_by(id) %>%                         # Group by id
+  arrange(year) %>%                        # Sort by year within each id
+  mutate(
+    prev_dem   = dplyr::lag(dem, 1),        # Create lagged democracy indicator using dplyr::lag()
+    transition = case_when(                # Define the transition:
+      dem == 1 & prev_dem == 0 ~ 1,         # 1: transition from non-democracy (0) to democracy (1)
+      dem == 0 & prev_dem == 0 ~ 0,         # 0: remains non-democracy (0)
+      TRUE ~ NA_real_                     # Otherwise, set to NA
+    ),
+    lag1 = dplyr::lag(y, 1),                # y lag 1 period
+    lag2 = dplyr::lag(y, 2),                # y lag 2 periods
+    lag3 = dplyr::lag(y, 3),                # y lag 3 periods
+    lag4 = dplyr::lag(y, 4)                 # y lag 4 periods
+  ) %>%
+  filter(                                  # Filter out rows with any missing lag values
+    !is.na(lag1) & !is.na(lag2) & !is.na(lag3) & !is.na(lag4)
+  ) %>%
   ungroup()
 
-# For each id, create a lagged democracy indicator and define the transition:
-# - Transition = 1 if it goes from 0 to 1 (non-democracy to democracy)
-# - Transition = 0 if it remains at 0 (non-democracy)
-# - Otherwise, transition is set to NA
-data_f1 <- data_f1 %>%
-  group_by(id) %>%
-  arrange(year) %>%
-  mutate(prev_dem = lag(dem, 1)) %>%  
-  ungroup() %>%
-  mutate(transition = case_when(
-    dem == 1 & prev_dem == 0 ~ 1,
-    dem == 0 & prev_dem == 0 ~ 0,
-    TRUE ~ NA_real_
-  ))
-
-# Compute lags for 'y' (lags 1 through 4) within each id and filter out rows 
-# with any missing lag values
-data_f1 <- data_f1 %>%
-  group_by(id) %>%
-  arrange(year) %>%
-  mutate(
-    lag1 = lag(y, 1),
-    lag2 = lag(y, 2),
-    lag3 = lag(y, 3),
-    lag4 = lag(y, 4)
-  ) %>%
-  ungroup() %>%
-  filter(!is.na(lag1) & !is.na(lag2) & !is.na(lag3) & !is.na(lag4))
-
-# Calculate GDP differences for past periods:
-# For t from -15 to -2, create columns 'gdpDiff_m[abs(t)]' as the difference 
-# between the lagged 'y' (by abs(t)) and lag1
+# 2. Create GDP differences for past periods (from t = -15 to -2)
+#    New columns are named "gdpDiff_m[abs(t)]", computed as lag(y, abs(t)) - lag1
 for (t in -15:-2) {
   col_name <- paste0("gdpDiff_m", abs(t))
   data_f1 <- data_f1 %>%
     group_by(id) %>%
     arrange(year) %>%
-    mutate(!!col_name := lag(y, abs(t)) - lag1) %>%
+    mutate(!!col_name := dplyr::lag(y, abs(t)) - lag1) %>%
     ungroup()
 }
 
-# Set the GDP difference for the immediate past period (m1) to 0
+# 3. Set the immediate past period (m1) difference to 0 and compute the current period difference (0)
 data_f1 <- data_f1 %>%
-  mutate(gdpDiff_m1 = 0)
+  mutate(
+    gdpDiff_m1 = 0,         # Set immediate past difference to 0
+    gdpDiff_0  = y - lag1    # Current period difference: y - lag1
+  )
 
-# Compute the GDP difference for the current period (0) 
-# as the difference between 'y' and lag1
-data_f1 <- data_f1 %>%
-  group_by(id) %>%
-  arrange(year) %>%
-  mutate(gdpDiff_0 = y - lag1) %>%
-  ungroup()
-
-# Calculate GDP differences for future periods:
-# For t from 1 to 30, create columns 'gdpDiff_p[t]' 
-# as the difference between the lead of 'y' (by t) and lag1
+# 4. Create GDP differences for future periods (from t = 1 to 30)
+#    New columns are named "gdpDiff_p[t]", computed as lead(y, t) - lag1
 for (t in 1:30) {
   col_name <- paste0("gdpDiff_p", t)
   data_f1 <- data_f1 %>%
     group_by(id) %>%
     arrange(year) %>%
-    mutate(!!col_name := lead(y, t) - lag1) %>%
+    mutate(!!col_name := dplyr::lead(y, t) - lag1) %>%
     ungroup()
 }
 
-# Keep only rows where the transition value is not missing
+# 5. Keep only rows where the transition value is not missing
 data_f1 <- data_f1 %>% filter(!is.na(transition))
 ```
 
@@ -334,6 +313,8 @@ save_kable(latex_table, file = "output/table_1.tex")
 \input{output/table_1.tex}
 
 ## Table.2
+
+\input{output/table_2_FE.tex}
 
 ## Figure.2
 

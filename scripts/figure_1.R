@@ -26,7 +26,7 @@ data_f1 <- data %>%
 data_f1 <- data_f1 %>%
   group_by(id) %>%
   arrange(year) %>%
-  mutate(prev_dem = lag(dem, 1)) %>%  # 1期前の "dem" を取得
+  mutate(prev_dem = dplyr::lag(dem, 1)) %>%  # 1期前の "dem" を取得（dplyr::lagを使用）
   ungroup() %>%
   mutate(transition = case_when(
     dem == 1 & prev_dem == 0 ~ 1,
@@ -42,10 +42,10 @@ data_f1 <- data_f1 %>%
   group_by(id) %>%
   arrange(year) %>%
   mutate(
-    lag1 = lag(y, 1),
-    lag2 = lag(y, 2),
-    lag3 = lag(y, 3),
-    lag4 = lag(y, 4)
+    lag1 = dplyr::lag(y, 1),
+    lag2 = dplyr::lag(y, 2),
+    lag3 = dplyr::lag(y, 3),
+    lag4 = dplyr::lag(y, 4)
   ) %>%
   ungroup() %>%
   filter(!is.na(lag1) & !is.na(lag2) & !is.na(lag3) & !is.na(lag4))
@@ -55,10 +55,10 @@ data_f1 <- data_f1 %>%
 # -----------------------------------------------------------
 # ここでは、民主化直前のGDP (lag1) を基準に、各期間でのGDPの変化（差分）を求めます。
 # ※ 「相対時点」は、民主化転換前後の年を示し、以下のように命名しています：
-#     - t < 0：民主化転換前。t = -15～-2 の場合、lag(y, abs(t)) - lag1 を計算
+#     - t < 0：民主化転換前。t = -15～-2 の場合、dplyr::lag(y, abs(t)) - lag1 を計算
 #     - t = -1：民主化直前の期間。ここは基準なので 0 とする
 #     - t = 0：民主化転換直後。y - lag1 を計算
-#     - t > 0：民主化転換後。lead(y, t) - lag1 を計算
+#     - t > 0：民主化転換後。dplyr::lead(y, t) - lag1 を計算
 #
 # 命名規則：
 #   - 前期は "gdpDiff_mX" （例：t = -15 → "gdpDiff_m15"）
@@ -72,7 +72,7 @@ for (t in -15:-2) {
   data_f1 <- data_f1 %>%
     group_by(id) %>%
     arrange(year) %>%
-    mutate(!!col_name := lag(y, abs(t)) - lag1) %>%
+    mutate(!!col_name := dplyr::lag(y, abs(t)) - lag1) %>%
     ungroup()
 }
 
@@ -81,20 +81,20 @@ data_f1 <- data_f1 %>%
   mutate(gdpDiff_m1 = 0)
 
 # (c) 民主化転換直後およびその後の期間：t = 0 ～ 30
-# まず、t = 0 の場合は現在のyとの差分
+# まず、t = 0 の場合は現在のyとの差分を計算
 data_f1 <- data_f1 %>%
   group_by(id) %>%
   arrange(year) %>%
   mutate(gdpDiff_0 = y - lag1) %>%
   ungroup()
 
-# t > 0 の場合は lead を使って未来のGDPを取得
+# t > 0 の場合は dplyr::lead を使って未来のGDPを取得
 for (t in 1:30) {
   col_name <- paste0("gdpDiff_p", t)  # 例: t = 1 → "gdpDiff_p1"
   data_f1 <- data_f1 %>%
     group_by(id) %>%
     arrange(year) %>%
-    mutate(!!col_name := lead(y, t) - lag1) %>%
+    mutate(!!col_name := dplyr::lead(y, t) - lag1) %>%
     ungroup()
 }
 
@@ -178,5 +178,4 @@ figure_1 <- ggplot(results_df, aes(x = RelativeTime, y = ATET)) +
 # -----------------------------------------------------------
 # 9. プロットの保存
 # -----------------------------------------------------------
-ggsave("output/figure_1.pdf", width = 14, height = 8, units = "cm")
-
+ggsave("output/figure_1.pdf", figure_1, width = 14, height = 8, units = "cm")

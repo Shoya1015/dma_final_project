@@ -1,7 +1,14 @@
 # パッケージのインストール ----
 pacman::p_load(
-  tidyverse,
-  haven,
+  plm,           # パネル回帰
+  lmtest,        # 検定用
+  sandwich,      # ロバスト標準誤差
+  AER,           # IV推定用（ivreg など）
+  modelsummary,  # 結果表作成
+  tidyverse,     # データ操作（dplyr, stringr 等）
+  purrr,         # 関数型プログラミング
+  haven,         # Stataデータの読み込み
+  car,           # deltaMethod等
   DT
 )
 
@@ -10,7 +17,6 @@ data <- read_dta("data/raw/DDCGdata_final.dta")
 glimpse(data)
 
 # カラム名を確認 ----
-
 # 方法1: 
 # インタラクティブなテーブルとして表示
 datatable(data.frame(カラム名 = colnames(data)))
@@ -37,3 +43,4 @@ labels_df <- tibble::tibble(
 
 # labels_dfをView()関数で眺めてもOK (RStudioでテーブル表示)
 View(labels_df)
+
