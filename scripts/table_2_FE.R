@@ -5,7 +5,7 @@ pacman::p_load(
   plm,         # パネル回帰
   tidyverse,   # データ操作
   haven,       # Stataデータの読み込み
-  stargazer   # 結果出力（HTMLやテキスト）
+  stargazer   # 結果出力（LaTeXなど）
 )
 
 # -----------------------------------------------------------
@@ -102,7 +102,7 @@ model_4 <- plm(
 # -----------------------------------------------------------
 # 8. Long Run Effect の計算
 # -----------------------------------------------------------
-# 各モデルにおいて、民主主義（dem）の係数（beta）とラグの係数群（gamma）から
+# 各モデルにおいて、民主主義（dem）の係数（beta）とラグ係数群（gamma）から
 # 長期効果を計算する（長期効果 = beta / (1 - sum(gamma))）
 # モデル1
 beta_hat_1  <- coef(model_1)["dem"]
@@ -143,9 +143,9 @@ print(pers)
 # -----------------------------------------------------------
 # 10. 25年後の累積効果の計算
 # -----------------------------------------------------------
-# 各モデルについて、動的に累積効果を計算し、25年後の効果（25期後の効果）を求める
+# 各モデルについて、再帰的に累積効果を計算し、25年後の効果（25期後の効果）を求める
 
-# モデル1 の場合（1期目：dem の短期効果＝直接の係数）
+## モデル1 の場合（lag1のみ）
 dem_shortrun <- coef(model_1)["dem"]
 lag1_mod1 <- coef(model_1)[2]  # model_1 の lag1 係数
 effect1 <- dem_shortrun
@@ -158,7 +158,7 @@ for (i in 3:30) {
 }
 eff_25_1 <- effects_mod1[25]
 
-# モデル2 の場合（2期分：lag1 と lag2 を考慮）
+## モデル2 の場合（lag1, lag2）
 dem_shortrun <- coef(model_2)["dem"]
 lag1_mod2 <- coef(model_2)[2]
 lag2_mod2 <- coef(model_2)[3]
@@ -173,7 +173,7 @@ for (i in 4:30) {
 }
 eff_25_2 <- effects_mod2[25]
 
-# モデル3 の場合（4期分：lag1, lag2, lag3, lag4 を考慮）
+## モデル3 の場合（lag1, lag2, lag3, lag4）
 dem_shortrun <- coef(model_3)["dem"]
 lag1_mod3 <- coef(model_3)[2]
 lag2_mod3 <- coef(model_3)[3]
@@ -192,7 +192,7 @@ for (i in 5:30) {
 }
 eff_25_3 <- effects_mod3[25]
 
-# モデル4 の場合（8期分：lag1～lag8 を考慮）
+## モデル4 の場合（lag1～lag8）
 dem_shortrun <- coef(model_4)["dem"]
 lag1_mod4 <- coef(model_4)[2]
 lag2_mod4 <- coef(model_4)[3]
@@ -227,26 +227,26 @@ eff_25 <- round(eff_25, 3)
 print(eff_25)
 
 # -----------------------------------------------------------
-# 11. 結果の出力：stargazer によるテーブル作成
+# 11. 結果の出力：stargazer によるテーブル作成と LaTeX ファイルとして保存
 # -----------------------------------------------------------
-# モデルオブジェクトは model_1 〜 model_4 としてリストにまとめる
+# モデルオブジェクトは model_1 ～ model_4 としてリストにまとめる
 models <- list(model_1, model_2, model_3, model_4)
 
 stargazer(models, 
-          type = "text",                      # "text" に変更すればコンソール上で確認可能
+          type = "latex",                       # LaTeX形式で出力
+          out = "output/table_2_FE.tex",        # outputフォルダに保存
           title = "Effect of Democracy on (Log) GDP per Capita", 
           dep.var.labels = "Log GDP per Capita",  
           covariate.labels = c("Democracy"),
           omit.stat = c("ser", "f", "adj.rsq"), 
-          keep.stat = c("n", "N"),            # 観測数を表示
-          omit = c("lag6", "lag7", "lag8"),   # 出力から除外する変数（必要に応じて調整）
-          model.numbers = FALSE,              # モデル番号を除去
+          keep.stat = c("n", "N"),              # 観測数を表示
+          omit = c("lag6", "lag7", "lag8"),     # 出力から除外する変数（必要に応じて調整）
+          model.numbers = FALSE,                # モデル番号を除去
           column.labels = c("(1)", "(2)", "(3)", "(4)"), 
           add.lines = list( 
             c("Persistence: ", pers), 
             c("Long run effect: ", lre),
             c("Effect after 25 years: ", eff_25)
           ),
-          notes = "The reported coefficient on democracy is multiplied by 100. Replication of Table 2 in ANRR (2019)",
           notes.append = FALSE
 )
