@@ -70,7 +70,7 @@ opts_knit$set(width=75)
 
 ## Data
 
-We utilize data obtained from the replication files available in the data archive on Professor Daron Acemoglu's homepage. This dataset consists of a large panel of 175 countries. The sample size is 9,384, and the number of variables is 1,177. A list of variables is provided in the Appendix.
+We utilize data obtained from the replication files available in the data archive on Professor Daron Acemoglu's homepage. This dataset consists of a large panel of 175 countries. The sample size is 9,384, and the number of variables is 1,177. A list of variables is provided in the appendix.
 
 ```{r}
 data <- read_dta("data/raw/DDCGdata_final.dta")
@@ -80,9 +80,6 @@ summarize_data <- function(data, n = 10) {
       nrow(data), "\n")
   cat("Number of variables (columns):",
       ncol(data), "\n")
-  cat("Variable names (first",
-      n, "names):\n")
-  print(head(colnames(data), n))
 }
 
 summarize_data(data)
@@ -90,9 +87,20 @@ summarize_data(data)
 
 ## Empirical Methods
 
+Here, we will briefly explain the empirical methods we use for replication. The original paper used a number of emiprical methods to strengthen the robustness of the results. Among them, we reproduce three methods\footnote{We also worked on Arellano-Bond estimation in table.2. However, it took an enormous amount of computation time and the results obtained were quite different from the original results. In other words, replication failed. However, in the belief that it is desirable to disclose the entire analysis process and results, we disclose the analysis code and results in the appendix.}.
+s
 ### Event Study (Figure.1)
 
 ### Dynamic Liner Panel Model (Table.2)
+
+Next, we estimate the following dynamic linear panel model.
+\begin{align*}
+&Y_{ct} = \beta D_{ct} + \gamma_1 y_{ct-1} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{1} \\
+&Y_{ct} = \beta D_{ct} + \sum_{j = 1}^2 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{2} \\
+&Y_{ct} = \beta D_{ct} + \sum_{j = 1}^4 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{3} \\
+&Y_{ct} = \beta D_{ct} + \sum_{j = 1}^8 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{4}
+\end{align*}
+where $y_{ct}$ is the log of GDP per capita in country $c$ at time $t$ and $D_{ct}$ is a dummy variable that takes the value 1 if country $c$ is a democracy at time $t$ and 0 otherwise.
 
 # Replication
 
@@ -156,7 +164,7 @@ data_f1 <- data_f1 %>%
 ### Estimation
 
 ```{r}
-estimateATET <- function(outcome_col) {
+estimateATT <- function(outcome_col) {
   sub_data <- data_f1 %>%
     filter(
       !is.na(.data[[outcome_col]]),
@@ -210,19 +218,19 @@ for (i in seq_along(relative_times)) {
     col_name <- if (t_val == 0)
       "gdpDiff_0" else paste0("gdpDiff_p", t_val)
   }
-  atets[i] <- estimateATET(col_name)
+  atets[i] <- estimateATT(col_name)
 }
 
 results_df <- data.frame(
   RelativeTime = relative_times,
-  ATET         = atets
+  ATT          = atets
 )
 ```
 
 ### Plot
 
 ```{r}
-figure_1 <- ggplot(results_df, aes(x = RelativeTime, y = ATET)) +
+figure_1 <- ggplot(results_df, aes(x = RelativeTime, y = ATT)) +
   geom_line(color = "black") +
   scale_x_continuous(breaks = seq(-15, 30, 5)) +
   labs(
@@ -937,12 +945,12 @@ texreg(
     "Long run effect" = lre,
     "Effect after 25 years" = eff_25
   ),
-  file = "output/TableMain_GMM.tex",
+  file = "output/table_2_GMM.tex",
   caption = "Effect of Democracy on (Log) GDP per Capita: Arellano–Bond GMM Estimation"
 )
 ```
 
-\input{output/TableMain_GMM.tex}
+\input{output/table_2_GMM.tex}
 
 
 
