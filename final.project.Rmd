@@ -3,7 +3,7 @@ title: 'Data Management & Analysis Final Project'
 subtitle: 'Replication and Extention for Acemoglu, Naidu, Restrepo and Robinson (2019)'
 author: 
   - "(Name:) Shoya Abe (University ID:) 31B24001"
-  - "(Name:) Honoka Ohtani (University ID:) 31B24002"
+  - "(Name:) Honoka Otani (University ID:) 31B24002"
 date: "(Submission Due:) 2025/02/06"
 output:
   pdf_document:
@@ -61,15 +61,52 @@ opts_knit$set(width = 75)
 
 ## Project Type
 
-## Summary of the Paper (Honoka Ohtani)
+In this report, we replicate and extend the previous paper. The paper we replicate is Acemoglu, D., Naidu, S., Restrepo, P., & Robinson, J. A. (2019). “Democracy Does Cause Growth.” \textit{Journal of Political Economy}, 127(1), 47–100. \url{https://doi.org/10.1086/700936}.
+
+We try to replicate Figure.1, Table.1, Table.2 and Table.6 in the paper, which are especially critical results in the paper. Also, we try several extension approaches using the bootstrap method. In appendix, we replicate Arellano Bond Estimation for Table.2 because we failed to replicate due to several limitations.
+
+In addition, we extend this research by derivation of a confidence interval using the bootstrap method.
+
+## Summary of the Paper (Honoka Otani)
 
 ### What the problem is
 
+The authors attempted to provide a clear answer to the widely divergent topic of opinion on the causal relationship between democracy and economic growth. At the time of writing, there was a widely shared view that democracy has no relation to, or rather a negative effect on, economic growth. 
+
+On the other hand, there were empirical studies that showed a positive effect of democracy on economic growth, but they did not adequately address the endogeneity issue between political regimes and economic growth. 
+
+This paper points to four main challenges in estimating the causal relationship between democracy and economic growth. First, existing democracy indicators are subject to measurement error and changes in scores may not accurately reflect actual changes in political regimes. Second, there are institutional, historical and cultural differences between democracies and nondemocracies that also affect economic growth, which may introduce bias in the analysis. Third, democratization tends to occur after a temporary drop in GDP, which can bias estimates if not captured correctly in the model. Fourth, democratization and economic growth may be affected by common external factors, making it difficult to identify causality.
+
+
 ### Why it is important
+
+Demonstrating the causal relationship between democracy and economic growth has important implications for both political and economic development strategies. If democracy has a positive effect on economic growth, it provides an incentive to promote democratization across the world. It would also provide important hints to each country seeking to achieve economic growth. By providing empirical evidence, this study contributes to the competing debate on governance and economic growth.
 
 ### How you solve the problem
 
+To address the problem of measurement error in democracy indicators, the authors introduced a new democracy indicator by integrating several existing measurement methods.
+
+For other endogeneity problems, the authors employed three empirical strategies.
+
+First, a dynamic (linear) panel model is used to control for country fixed effects and autoregressive GDP dynamics. By including lags of GDP per capita, this model accounts for the pre-democratization dip in GDP, ensuring that countries transitioning to democracy are not on a different GDP trend compared to other countries with similar past GDP levels.
+
+Second, they adopted a propensity score reweighting strategy semiparametric treatment effects framework which democratization influences the distribution of potential GDP in all subsequent years. This method models the selection into democracy as a function of observable factors, particularly past GDP, without relying on a fully parametric GDP model. This approach increases flexibility in estimating how democracy influences GDP over time.
+
+Third, they applied an instrumental variables (IV) method, using regional waves of democratization as an instrument for a country's transition to democracy. Since democratizations often occur in regional clusters, this method isolates exogenous variation in democracy that is not directly related to a country's own economic conditions. By leveraging this external source of variation, the IV approach strengthens the identification of the causal effect of democracy on GDP.
+
+As for extension part, in order to visualize the uncertainty of the long-term impact of democratization on economic growth, we estimate the confidence interval of the ATT estimate using the bootstrap method based on the event study in Figure 1.
+
 ### What we find
+
+The findings of this paper demonstrate that democracy has a significant positive effect on GDP per capita. A country that transitions from nondemocracy to democracy experiences a long-run increase in GDP per capita of approximately 20–25% over the next 25 years. This effect is robust across different three strategies.  
+
+Furthermore, the analysis shows that the effect does not depend on a country’s initial level of development, however, the effect is stronger in countries with higher levels of secondary education.  
+
+The authors also suggest several channels through which democracy promotes economic growth. They showed that democracy increases economic reforms, tax revenue (as a percentage of GDP). And enrollment in primary and secondary education and reduces child mortality rate. They also found the possibility that democracy promotes investment and open trade, and reduces social unrest.
+
+Overall, the findings of this study strongly support the claim that democracy causes economic growth. This effect is primarily driven by democracy’s ability to increase investment, improve human capital through education and healthcare, and strengthen governance structures, while also contributing to greater political stability and reduced social unrest. These results challenge the notion that democracy is a hindrance to economic growth and instead emphasize its role in fostering sustainable and inclusive economic growth.
+
+As for extension part, we found that the long-term impact of democratization on economic growth is quite uncertain.
 
 ## Data (Shoya Abe)
 
@@ -271,7 +308,7 @@ ggsave(
 
 ![The Long-Term Impact of Democratization on Economic Growth](output/figure_1.pdf)
 
-## Table.1 (Honoka Ohtani)
+## Table.1 (Honoka Otani)
 
 ### Preprocessing
 
@@ -352,7 +389,7 @@ save_kable(latex_table, file = "output/table_1.tex")
 
 \input{output/table_1.tex}
 
-## Table.2 (Honoka Ohtani)
+## Table.2 (Honoka Otani)
 
 ### Preprocessing
 

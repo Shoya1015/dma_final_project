@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.12.3)  5 FEB 2025 22:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.12.3)  6 FEB 2025 01:03
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -603,193 +603,177 @@ LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
 
 [3]
 
-[4{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}]
+[4]
 
-[5]
+[5{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
 
-[6]
+[6{c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}]
 
 [7]
-<output/figure_1.pdf, id=146, 397.485pt x 226.8475pt>
+
+[8]
+<output/figure_1.pdf, id=152, 397.485pt x 226.8475pt>
 File: output/figure_1.pdf Graphic file (type pdf)
 <use output/figure_1.pdf>
-Package pdftex.def Info: output/figure_1.pdf  used on input line 455.
+Package pdftex.def Info: output/figure_1.pdf  used on input line 565.
 (pdftex.def)             Requested size: 397.48402pt x 226.84694pt.
 
 
-[8 <./output/figure_1.pdf>] (./output/table_1.tex)
+[9 <./output/figure_1.pdf>]
 
-[9]
-
-[10]
-Underfull \vbox (badness 10000) detected at line 829
- []
-
-
-Underfull \vbox (badness 10000) detected at line 829
- []
-
-
+[10] (./output/table_1.tex)
 
 [11]
-Underfull \vbox (badness 10000) detected at line 829
- []
-
-
-Underfull \vbox (badness 10000) detected at line 829
- []
-
-
 
 [12]
-Underfull \vbox (badness 10000) detected at line 829
+Underfull \vbox (badness 10000) detected at line 939
  []
 
 
-Underfull \vbox (badness 10000) detected at line 829
+Underfull \vbox (badness 10000) detected at line 939
  []
 
 
 
 [13]
-Underfull \vbox (badness 10000) detected at line 829
+Underfull \vbox (badness 10000) detected at line 939
  []
 
 
-Underfull \vbox (badness 10000) detected at line 829
+Underfull \vbox (badness 10000) detected at line 939
  []
 
 
 
 [14]
+Underfull \vbox (badness 10000) detected at line 939
+ []
 
-[15] (./output/table_2_FE.tex)
 
-[16]
+Underfull \vbox (badness 10000) detected at line 939
+ []
+
+
+
+[15]
+
+[16] (./output/table_2_FE.tex)
 
 [17]
-Underfull \vbox (badness 10000) detected at line 1038
- []
-
-
-Underfull \vbox (badness 10000) detected at line 1038
- []
-
-
 
 [18]
 
-[19] (./output/table_6_iv.tex)
+[19]
+Underfull \vbox (badness 10000) detected at line 1148
+ []
+
+
+Underfull \vbox (badness 10000) detected at line 1148
+ []
+
+
 
 [20]
 
-[21]
-<output/figure_1_withCI.pdf, id=219, 397.485pt x 226.8475pt>
-File: output/figure_1_withCI.pdf Graphic file (type pdf)
-<use output/figure_1_withCI.pdf>
-Package pdftex.def Info: output/figure_1_withCI.pdf  used on input line 1202.
-(pdftex.def)             Requested size: 397.48402pt x 226.84694pt.
-
+[21] (./output/table_6_iv.tex)
 
 [22]
 
-[23 <./output/figure_1_withCI.pdf>]
-Overfull \hbox (39.35562pt too wide) in alignment at lines 1256--1261
+[23]
+<output/figure_1_withCI.pdf, id=229, 397.485pt x 226.8475pt>
+File: output/figure_1_withCI.pdf Graphic file (type pdf)
+<use output/figure_1_withCI.pdf>
+Package pdftex.def Info: output/figure_1_withCI.pdf  used on input line 1312.
+(pdftex.def)             Requested size: 397.48402pt x 226.84694pt.
+
+
+[24]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1366--1371
  [] [] 
  []
 
 
-Overfull \hbox (39.35562pt too wide) in alignment at lines 1261--1266
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1371--1376
  [] [] 
  []
 
 
-Overfull \hbox (39.35562pt too wide) in alignment at lines 1266--1268
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1376--1378
  [] [] 
  []
 
 
-Overfull \hbox (39.35562pt too wide) in alignment at lines 1268--1270
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1378--1380
  [] [] 
  []
 
 
-Overfull \hbox (39.35562pt too wide) in alignment at lines 1270--1510
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1380--1620
  [] [] 
  []
 
 
-Overfull \hbox (39.35562pt too wide) in alignment at lines 1510--1750
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1620--1860
  [] [] 
  []
 
-[24] [25] [26] [27]
-Overfull \hbox (39.35562pt too wide) in alignment at lines 1750--1990
+[25 <./output/figure_1_withCI.pdf>] [26] [27] [28] [29]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 1860--2100
  [] [] 
  []
 
-[28] [29] [30] [31]
-Overfull \hbox (39.35562pt too wide) in alignment at lines 1990--2230
+[30] [31] [32] [33]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 2100--2340
  [] [] 
  []
 
-[32] [33] [34] [35] [36]
-Overfull \hbox (39.35562pt too wide) in alignment at lines 2230--2470
+[34] [35] [36] [37]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 2340--2580
  [] [] 
  []
 
-[37] [38] [39] [40]
-Overfull \hbox (39.35562pt too wide) in alignment at lines 2470--2683
+[38] [39] [40] [41]
+Overfull \hbox (39.35562pt too wide) in alignment at lines 2580--2793
  [] [] 
  []
 
-[41] [42] [43] [44] [45] [46] [47] [48]
-
-[49]
-Underfull \vbox (badness 10000) detected at line 2940
- []
-
-
-Underfull \vbox (badness 10000) detected at line 2940
- []
-
-
-
-[50]
-Underfull \vbox (badness 10000) detected at line 2940
- []
-
-
-Underfull \vbox (badness 10000) detected at line 2940
- []
-
-
+[42] [43] [44] [45] [46] [47] [48] [49] [50]
 
 [51]
-Underfull \vbox (badness 10000) detected at line 2940
+Underfull \vbox (badness 10000) detected at line 3050
  []
 
 
-Underfull \vbox (badness 10000) detected at line 2940
+Underfull \vbox (badness 10000) detected at line 3050
  []
 
 
 
 [52]
-Underfull \vbox (badness 10000) detected at line 2940
+Underfull \vbox (badness 10000) detected at line 3050
  []
 
 
-Underfull \vbox (badness 10000) detected at line 2940
+Underfull \vbox (badness 10000) detected at line 3050
  []
 
 
 
-[53] (./output/table_2_GMM.tex)
+[53]
+Underfull \vbox (badness 10000) detected at line 3050
+ []
 
-[54]
 
-[55] (./final.project.aux)
+Underfull \vbox (badness 10000) detected at line 3050
+ []
+
+
+
+[54] (./output/table_2_GMM.tex)
+
+[55]
+
+[56] (./final.project.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 1
 L3 programming layer <2024-11-02>
@@ -799,18 +783,18 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 13649 strings out of 475289
- 212682 string characters out of 5766684
- 674118 words of memory out of 5000000
+ 13650 strings out of 475289
+ 212686 string characters out of 5766684
+ 668906 words of memory out of 5000000
  36138 multiletter control sequences out of 15000+600000
  629897 words of font info for 86 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 89i,16n,93p,743b,577s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 89i,16n,93p,743b,581s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmex10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi5.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr6.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy5.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy7.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtk10.pfb><c:/Users/shouy/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on final.project.pdf (55 pages, 418255 bytes).
+Output written on final.project.pdf (56 pages, 422775 bytes).
 PDF statistics:
- 614 PDF objects out of 1000 (max. 8388607)
- 508 compressed objects within 6 object streams
- 122 named destinations out of 1000 (max. 500000)
+ 620 PDF objects out of 1000 (max. 8388607)
+ 513 compressed objects within 6 object streams
+ 123 named destinations out of 1000 (max. 500000)
  323 words of extra memory for PDF output out of 10000 (max. 10000000)
 
