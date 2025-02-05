@@ -160,6 +160,8 @@ Next, we estimate the following dynamic linear panel model.
 \end{align}
 where $y_{ct}$ is the log of GDP per capita in country $c$ at time $t$ and $D_{ct}$ is a dummy variable that takes the value 1 if country $c$ is a democracy at time $t$ and 0 otherwise.
 
+### Semiparametric Estimation (Figure.4)
+
 ### Instrumental Variable (IV) Method (Table.6)
 
 Finally, we adopt the instrumental variable (IV) method. The instrumental variables used in this analysis are as follows.
@@ -703,6 +705,53 @@ texreg(
 ```
 
 \input{output/table_2_FE.tex}
+
+## Figure.4
+
+### Preprocessing
+
+```{r}
+data_ipw <- read_dta("data/raw/impulse_ipw_alt.dta")
+
+data_ipw <- data_ipw |> 
+  separate(parm, 
+           into = c("parm1", "parm2"), 
+           sep = "c", 
+           extra = "merge", 
+           fill = "right")
+
+data_ipw <- data_ipw |> 
+  filter(parm2 != "") |> 
+  mutate(parm2 = as.numeric(parm2))
+
+
+data_ipw <- data_ipw |> 
+  mutate(time = parm2 - 16)
+```
+
+### Plot
+
+```{r}
+figure_4 <- ggplot(data_ipw, aes(x = time, y = estimate)) +
+  geom_line(color = "black") +
+  geom_ribbon(aes(ymin = min95, ymax = max95), fill = "skyblue", alpha = 0.3) +
+  labs(x = "Years around democratization",
+       y = "Change in GDP per capita (log points)") +
+  scale_x_continuous(breaks = seq(-15, 30, 5)) +
+  theme_bw() 
+
+ggsave("output/figure_4.pdf", 
+       figure_4, 
+       width = 14, 
+       height = 8, 
+       units = "cm")
+```
+
+![Semiparametric Estimation](output/figure_4.pdf)
+
+## Table.5 
+
+\input{output/table_5_ipw.tex}
 
 ## Table.6 (Shoya Abe)
 
