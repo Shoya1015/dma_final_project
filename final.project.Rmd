@@ -63,9 +63,7 @@ opts_knit$set(width = 75)
 
 In this report, we replicate and extend the previous paper. The paper we replicate is Acemoglu, D., Naidu, S., Restrepo, P., & Robinson, J. A. (2019). “Democracy Does Cause Growth.” \textit{Journal of Political Economy}, 127(1), 47–100. \url{https://doi.org/10.1086/700936}.
 
-We try to replicate Figure.1, Table.1, Table.2 and Table.6 in the paper, which are especially critical results in the paper. Also, we try several extension approaches using the bootstrap method. In appendix, we replicate Arellano Bond Estimation for Table.2 because we failed to replicate due to several limitations.
-
-In addition, we extend this research by derivation of a confidence interval using the bootstrap method.
+We try to replicate Figure.1, Table.1, Table.2 and Table.6 in the paper, which are especially critical results in the paper. We also try several extension approaches using the bootstrap method. In appendix, we replicate Arellano Bond Estimation for Table.2 because we failed to replicate due to several limitations.
 
 ## Summary of the Paper (Honoka Otani)
 
@@ -110,7 +108,7 @@ As for extension part, we found that the long-term impact of democratization on 
 
 ## Data (Shoya Abe)
 
-We utilize data obtained from the replication files available in the data archive on Professor Daron Acemoglu's homepage. This dataset consists of a large panel of 175 countries. The sample size is 9,384, and the number of variables is 1,177. A list of variables is provided in the appendix.
+We use data obtained from the replication files available in the data archive on Professor Daron Acemoglu's homepage. This dataset consists of a large panel of 175 countries from 1960 to 2010. The sample size is 9,384, and the number of variables is 1,177. A list of variables is provided in the appendix.
 
 ```{r}
 data <- read_dta("data/raw/DDCGdata_final.dta")
@@ -123,9 +121,9 @@ summarize_data <- function(data, n = 10) {
 summarize_data(data)
 ```
 
-## Econometric Methods (Shoya Abe)
+## Empirical Methods (Shoya Abe)
 
-Here, we briefly explain the empirical methods we use for replication. The original paper used a number of emiprical methods to strengthen the robustness of the results. Among them, we reproduce three methods\footnote{We also worked on Arellano Bond estimation in table.2. However, it took an enormous amount of computation time and the results obtained were quite different from the original results. In other words, replication failed. However, in the belief that it is desirable to disclose the entire analysis process and results, we disclose the analysis code and results in the appendix.}.
+We briefly explain the empirical methods we use for our replication. The original paper used a number of empirical methods to strengthen the robustness of the results. Among them, we replicate three main strategy below\footnote{We also worked on Arellano Bond estimation in table.2. However, it took an enormous amount of computation time and the results obtained were quite different from the original results. In other words, replication failed. However, in the belief that it is desirable to disclose the entire analysis process and results, we disclose the analysis code and results in the appendix.}.
 
 ### Event Study (Figure.1)
 
@@ -164,11 +162,11 @@ where $y_{ct}$ is the log of GDP per capita in country $c$ at time $t$ and $D_{c
 
 ### Instrumental Variable (IV) Method (Table.6)
 
-Finally, we perform the instrumental variable (IV) method. The instrumental variables used in this analysis are as follows.
+Finally, we adopt the instrumental variable (IV) method. The instrumental variables used in this analysis are as follows.
 \begin{align}
 Z_{ct} = \frac{1}{|I_c|} \sum_{{c^*} \in I_c} D_{ {c^*} t}. \tag{5}
 \end{align}
-Using this instrumental variable, we will perform the following 2SLS estimation.
+Using this instrumental variable, we conduct the following 2SLS estimation.
 \begin{align}
 & y_{ct} = \beta D_{ct} + \sum_{j=1}^p \gamma y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \\
 & D_{ct} = \sum_{j=1}^q \pi_j Z_{ct-j} + \sum_{j=1}^p \phi_j y_{ct-j} + \theta_c + \mu_t + v_{ct} \tag{6}
