@@ -23,6 +23,7 @@ header-includes:
   - \usepackage{booktabs}
   - \usepackage{float}
   - \usepackage[table]{xcolor}
+geometry: margin=1in
 ---
 
 \newpage
@@ -40,25 +41,25 @@ pacman::p_load(
   plm,
   texreg
 )
-
-## Global options
-options(max.print="75")
-opts_chunk$set(fig.align="center",
-               echo=TRUE,
-               cache=TRUE,
-               prompt=FALSE,
-               tidy=FALSE,
-               comment=NA,
-               message=FALSE,
-               warning=FALSE)
-opts_knit$set(width=75)
+options(max.print = "75")
+opts_chunk$set(
+  fig.align = "center",
+  echo = TRUE,
+  cache = TRUE,
+  prompt = FALSE,
+  tidy = FALSE,
+  comment = NA,
+  message = FALSE,
+  warning = FALSE
+)
+opts_knit$set(width = 75)
 ```
 
 # About this Report
 
 ## Project Type
 
-## Summary of the Paper
+## Summary of the Paper (Honoka Ohtani)
 
 ### What the problem is
 
@@ -68,7 +69,7 @@ opts_knit$set(width=75)
 
 ### What we find
 
-## Data
+## Data (Shoya Abe)
 
 We utilize data obtained from the replication files available in the data archive on Professor Daron Acemoglu's homepage. This dataset consists of a large panel of 175 countries. The sample size is 9,384, and the number of variables is 1,177. A list of variables is provided in the appendix.
 
@@ -76,22 +77,40 @@ We utilize data obtained from the replication files available in the data archiv
 data <- read_dta("data/raw/DDCGdata_final.dta")
 
 summarize_data <- function(data, n = 10) {
-  cat("Sample size (number of rows):",
-      nrow(data), "\n")
-  cat("Number of variables (columns):",
-      ncol(data), "\n")
+  cat("Sample size (number of rows):", nrow(data), "\n")
+  cat("Number of variables (columns):", ncol(data), "\n")
 }
 
 summarize_data(data)
 ```
 
-## Empirical Methods
+## Empirical Methods (Shoya Abe)
 
 Here, we will briefly explain the empirical methods we use for replication. The original paper used a number of emiprical methods to strengthen the robustness of the results. Among them, we reproduce three methods\footnote{We also worked on Arellano Bond estimation in table.2. However, it took an enormous amount of computation time and the results obtained were quite different from the original results. In other words, replication failed. However, in the belief that it is desirable to disclose the entire analysis process and results, we disclose the analysis code and results in the appendix.}.
 
 ### Event Study (Figure.1)
 
-First, we will conduct the following event study.
+First, we conduct the event study. We estimate the average treatment effect (ATT) for the treated group using the procedure described below.
+
+First, let \( T_c \) denote the year in which a given country experienced the democratization event. For any country \( c \) and year \( t \), we define the relative year as
+\begin{align*}
+\tau_{c,t} = t - T_c.
+\end{align*}
+Then, taking the outcome \( y \) in the year immediately preceding democratization (i.e., when \( \tau = -1 \)) as the baseline, the outcome of interest is defined as
+\begin{align*}
+\text{gdpDiff}_{c,t} = y_{c,t} - y_{c,T_c-1}.
+\end{align*}
+
+Next, we estimate the following regression model using the control group that did not experience democratization:
+\begin{align*}
+\text{gdpDiff}_{c,t} = \sum_{\tau=-15,\ \tau\neq -1}^{30} \beta_{\tau} \, \mathbf{1}\{\tau_{c,t} = \tau\} + \epsilon_{c,t}.
+\end{align*}
+
+The estimated coefficient \( \hat{\beta}_{\tau_{c,t}} \) from (3) can be interpreted as the counterfactual outcome for country \( c \) in year \( t \) in the absence of democratization. Therefore, the average difference between the observed outcome and this counterfactual outcome provides an estimate of the ATT for relative year \( \tau \), which is calculated as
+\begin{align*}
+\text{ATT}(\tau) = \frac{1}{N_{\tau}^{\text{treated}}} \sum_{\substack{(c,t) \in \text{treated} \\ \tau_{c,t} = \tau}} \Bigl( \text{gdpDiff}_{c,t} - \hat{\beta}_{\tau} \Bigr).
+\end{align*}
+
 
 ### Dynamic Liner Panel Model (Table.2)
 
@@ -118,7 +137,7 @@ Using this instrumental variable, we will perform the following 2SLS estimation.
 
 # Replication
 
-## Figure.1
+## Figure.1 (Shoya Abe)
 
 ### Preprocessing
 
@@ -140,10 +159,8 @@ data_f1 <- data %>%
     lag4 = dplyr::lag(y, 4)
   ) %>%
   filter(
-    !is.na(lag1) &
-      !is.na(lag2) &
-      !is.na(lag3) &
-      !is.na(lag4)
+    !is.na(lag1) & !is.na(lag2) &
+      !is.na(lag3) & !is.na(lag4)
   ) %>%
   ungroup()
 
@@ -159,7 +176,7 @@ for (t in -15:-2) {
 data_f1 <- data_f1 %>%
   mutate(
     gdpDiff_m1 = 0,
-    gdpDiff_0  = y - lag1
+    gdpDiff_0 = y - lag1
   )
 
 for (t in 1:30) {
@@ -180,43 +197,29 @@ data_f1 <- data_f1 %>%
 ```{r}
 estimateATT <- function(outcome_col) {
   sub_data <- data_f1 %>%
-    filter(
-      !is.na(.data[[outcome_col]]),
-      !is.na(transition)
-    )
-  if (nrow(sub_data) == 0)
-    return(NA)
-
+    filter(!is.na(.data[[outcome_col]]), !is.na(transition))
+  if (nrow(sub_data) == 0) return(NA)
   year_levels <- sort(unique(sub_data$year))
   sub_data <- sub_data %>%
     mutate(year_factor = factor(year, levels = year_levels))
-
   control_data <- sub_data %>%
     filter(transition == 0)
   treated_data <- sub_data %>%
     filter(transition == 1)
-
   if (nrow(control_data) < 2 ||
-      length(unique(control_data$year)) < 2)
-    return(NA)
-
+      length(unique(control_data$year)) < 2) return(NA)
   model_formula <- as.formula(
     paste(outcome_col, "~ year_factor - 1")
   )
-
   control_model <- tryCatch(
     lm(model_formula, data = control_data),
     error = function(e) NULL
   )
-
-  if (is.null(control_model))
-    return(NA)
-
+  if (is.null(control_model)) return(NA)
   predicted_outcomes <- tryCatch(
     predict(control_model, newdata = treated_data),
     error = function(e) rep(NA, nrow(treated_data))
   )
-
   treatment_effects <- treated_data[[outcome_col]] - predicted_outcomes
   mean(treatment_effects, na.rm = TRUE)
 }
@@ -229,15 +232,18 @@ for (i in seq_along(relative_times)) {
   if (t_val < 0) {
     col_name <- paste0("gdpDiff_m", abs(t_val))
   } else {
-    col_name <- if (t_val == 0)
-      "gdpDiff_0" else paste0("gdpDiff_p", t_val)
+    col_name <- if (t_val == 0) {
+      "gdpDiff_0"
+    } else {
+      paste0("gdpDiff_p", t_val)
+    }
   }
   atets[i] <- estimateATT(col_name)
 }
 
 results_df <- data.frame(
   RelativeTime = relative_times,
-  ATT          = atets
+  ATT = atets
 )
 ```
 
@@ -253,15 +259,17 @@ figure_1 <- ggplot(results_df, aes(x = RelativeTime, y = ATT)) +
   ) +
   theme_bw()
 
-ggsave("output/figure_1.pdf",
-       width = 14,
-       height = 8,
-       units = "cm")
+ggsave(
+  "output/figure_1.pdf",
+  width = 14,
+  height = 8,
+  units = "cm"
+)
 ```
 
 ![Event Study](output/figure_1.pdf)
 
-## Table.1
+## Table.1 (Honoka Ohtani)
 
 ### Preprocessing
 
@@ -297,9 +305,9 @@ calc_summary <- function(df, var, group_var) {
     group_by({{ group_var }}) %>%
     summarise(
       Observations = n(),
-      Mean         = mean(.data[[var]], na.rm = TRUE),
-      SD           = sd(.data[[var]], na.rm = TRUE),
-      .groups      = "drop"
+      Mean = mean(.data[[var]], na.rm = TRUE),
+      SD = sd(.data[[var]], na.rm = TRUE),
+      .groups = "drop"
     ) %>%
     mutate(Variable = var)
 }
@@ -316,22 +324,19 @@ summary_table <- lapply(
 ) %>%
   bind_rows() %>%
   pivot_wider(
-    names_from  = dem,
+    names_from = dem,
     values_from = c(Observations, Mean, SD),
-    names_glue  = "{.value}_dem{dem}"
+    names_glue = "{.value}_dem{dem}"
   ) %>%
   rename(
     Observations_Nondem = Observations_dem0,
-    Mean_Nondem         = Mean_dem0,
-    SD_Nondem           = SD_dem0,
-    Observations_Dem    = Observations_dem1,
-    Mean_Dem            = Mean_dem1,
-    SD_Dem              = SD_dem1
+    Mean_Nondem = Mean_dem0,
+    SD_Nondem = SD_dem0,
+    Observations_Dem = Observations_dem1,
+    Mean_Dem = Mean_dem1,
+    SD_Dem = SD_dem1
   ) %>%
-  left_join(
-    var_info,
-    by = c("Variable" = "var")
-  ) %>%
+  left_join(var_info, by = c("Variable" = "var")) %>%
   select(
     label,
     Observations_Nondem,
@@ -359,24 +364,22 @@ colnames(summary_table) <- c(
 ```{r}
 latex_table <- summary_table %>%
   kbl(
-    caption   = "Summary Statistics by Democracy Status",
-    format    = "latex",
-    booktabs  = TRUE,
-    digits    = 2
+    caption = "Summary Statistics by Democracy Status",
+    format = "latex",
+    booktabs = TRUE,
+    digits = 2
   ) %>%
   add_header_above(
     c(" " = 1, "Nondemocracies" = 3, "Democracies" = 3)
   ) %>%
-  kable_styling(
-    latex_options = c("HOLD_position", "striped")
-  )
+  kable_styling(latex_options = c("HOLD_position", "striped"))
 
 save_kable(latex_table, file = "output/table_1.tex")
 ```
 
 \input{output/table_1.tex}
 
-## Table.2
+## Table.2 (Honoka Ohtani)
 
 ### Preprocessing
 
@@ -402,98 +405,87 @@ data_t2 <- data %>%
 
 ```{r}
 data_m1 <- data_t2 %>%
-  drop_na(y, dem, lag1)
-data_m1 <- pdata.frame(data_m1,
-                       index = c("country_name", "year"))
+  drop_na(y, dem, lag1) %>%
+  pdata.frame(index = c("country_name", "year"))
 model_1 <- plm(
   y ~ dem + lag1,
-  data   = data_m1,
-  model  = "within",
+  data = data_m1,
+  model = "within",
   effect = "twoways"
 )
 
 data_m2 <- data_t2 %>%
-  drop_na(y, dem, lag1, lag2)
-data_m2 <- pdata.frame(data_m2,
-                       index = c("country_name", "year"))
+  drop_na(y, dem, lag1, lag2) %>%
+  pdata.frame(index = c("country_name", "year"))
 model_2 <- plm(
   y ~ dem + lag1 + lag2,
-  data   = data_m2,
-  model  = "within",
+  data = data_m2,
+  model = "within",
   effect = "twoways"
 )
 
 data_m3 <- data_t2 %>%
-  drop_na(y, dem, lag1, lag2, lag3, lag4)
-data_m3 <- pdata.frame(data_m3,
-                       index = c("country_name", "year"))
+  drop_na(y, dem, lag1, lag2, lag3, lag4) %>%
+  pdata.frame(index = c("country_name", "year"))
 model_3 <- plm(
   y ~ dem + lag1 + lag2 + lag3 + lag4,
-  data   = data_m3,
-  model  = "within",
+  data = data_m3,
+  model = "within",
   effect = "twoways"
 )
 
 data_m4 <- data_t2 %>%
-  drop_na(y, dem, lag1, lag2, lag3, lag4,
-          lag5, lag6, lag7, lag8)
-data_m4 <- pdata.frame(data_m4,
-                       index = c("country_name", "year"))
+  drop_na(
+    y, dem, lag1, lag2, lag3, lag4,
+    lag5, lag6, lag7, lag8
+  ) %>%
+  pdata.frame(index = c("country_name", "year"))
 model_4 <- plm(
   y ~ dem + lag1 + lag2 + lag3 + lag4 +
     lag5 + lag6 + lag7 + lag8,
-  data   = data_m4,
-  model  = "within",
+  data = data_m4,
+  model = "within",
   effect = "twoways"
 )
 
-beta_hat_1  <- coef(model_1)["dem"]
-gamma_hat_1 <- coef(model_1)[c("lag1")]
+beta_hat_1 <- coef(model_1)["dem"]
+gamma_hat_1 <- coef(model_1)["lag1"]
 long_run_effect_1 <- beta_hat_1 / (1 - sum(gamma_hat_1))
 
-beta_hat_2  <- coef(model_2)["dem"]
+beta_hat_2 <- coef(model_2)["dem"]
 gamma_hat_2 <- coef(model_2)[c("lag1", "lag2")]
 long_run_effect_2 <- beta_hat_2 / (1 - sum(gamma_hat_2))
 
-beta_hat_3  <- coef(model_3)["dem"]
+beta_hat_3 <- coef(model_3)["dem"]
 gamma_hat_3 <- coef(model_3)[c("lag1", "lag2", "lag3", "lag4")]
 long_run_effect_3 <- beta_hat_3 / (1 - sum(gamma_hat_3))
 
-beta_hat_4  <- coef(model_4)["dem"]
-gamma_hat_4 <- coef(model_4)[c("lag1", "lag2", "lag3",
-                               "lag4", "lag5", "lag6",
-                               "lag7", "lag8")]
+beta_hat_4 <- coef(model_4)["dem"]
+gamma_hat_4 <- coef(model_4)[
+  c("lag1", "lag2", "lag3", "lag4",
+    "lag5", "lag6", "lag7", "lag8")
+]
 long_run_effect_4 <- beta_hat_4 / (1 - sum(gamma_hat_4))
 
 lre <- round(
-  c(
-    long_run_effect_1,
-    long_run_effect_2,
-    long_run_effect_3,
-    long_run_effect_4
-  ),
+  c(long_run_effect_1, long_run_effect_2,
+    long_run_effect_3, long_run_effect_4),
   3
 )
-print(lre)
 
 pers1 <- sum(coef(model_1)[2])
 pers2 <- sum(coef(model_2)[2:3])
 pers3 <- sum(coef(model_3)[2:5])
 pers4 <- sum(coef(model_4)[2:9])
-pers <- round(
-  c(pers1, pers2, pers3, pers4),
-  3
-)
-print(pers)
+pers <- round(c(pers1, pers2, pers3, pers4), 3)
 
 dem_shortrun <- coef(model_1)["dem"]
 lag1_mod1 <- coef(model_1)[2]
 effect1 <- dem_shortrun
 effect2 <- (effect1 * lag1_mod1) + dem_shortrun
 effects_mod1 <- c(effect1, effect2)
-
 for (i in 3:30) {
-  eff <- (effects_mod1[i-1] * lag1_mod1) + dem_shortrun
+  eff <- (effects_mod1[i - 1] * lag1_mod1) + dem_shortrun
   effects_mod1 <- c(effects_mod1, eff)
 }
 eff_25_1 <- effects_mod1[25]
@@ -504,13 +496,11 @@ lag2_mod2 <- coef(model_2)[3]
 effect1 <- dem_shortrun
 effect2 <- (effect1 * lag1_mod2) + dem_shortrun
 effect3 <- (effect2 * lag1_mod2) +
-  (effect1 * lag2_mod2) +
-  dem_shortrun
+  (effect1 * lag2_mod2) + dem_shortrun
 effects_mod2 <- c(effect1, effect2, effect3)
-
 for (i in 4:30) {
-  eff <- (effects_mod2[i-1] * lag1_mod2) +
-    (effects_mod2[i-2] * lag2_mod2) +
+  eff <- (effects_mod2[i - 1] * lag1_mod2) +
+    (effects_mod2[i - 2] * lag2_mod2) +
     dem_shortrun
   effects_mod2 <- c(effects_mod2, eff)
 }
@@ -524,19 +514,16 @@ lag4_mod3 <- coef(model_3)[5]
 effect1 <- dem_shortrun
 effect2 <- (effect1 * lag1_mod3) + dem_shortrun
 effect3 <- (effect2 * lag1_mod3) +
-  (effect1 * lag2_mod3) +
-  dem_shortrun
+  (effect1 * lag2_mod3) + dem_shortrun
 effect4 <- (effect3 * lag1_mod3) +
   (effect2 * lag2_mod3) +
-  (effect1 * lag3_mod3) +
-  dem_shortrun
+  (effect1 * lag3_mod3) + dem_shortrun
 effects_mod3 <- c(effect1, effect2, effect3, effect4)
-
 for (i in 5:30) {
-  eff <- (effects_mod3[i-1] * lag1_mod3) +
-    (effects_mod3[i-2] * lag2_mod3) +
-    (effects_mod3[i-3] * lag3_mod3) +
-    (effects_mod3[i-4] * lag4_mod3) +
+  eff <- (effects_mod3[i - 1] * lag1_mod3) +
+    (effects_mod3[i - 2] * lag2_mod3) +
+    (effects_mod3[i - 3] * lag3_mod3) +
+    (effects_mod3[i - 4] * lag4_mod3) +
     dem_shortrun
   effects_mod3 <- c(effects_mod3, eff)
 }
@@ -554,50 +541,45 @@ lag8_mod4 <- coef(model_4)[9]
 effect1 <- dem_shortrun
 effect2 <- (effect1 * lag1_mod4) + dem_shortrun
 effect3 <- (effect2 * lag1_mod4) +
-  (effect1 * lag2_mod4) +
-  dem_shortrun
+  (effect1 * lag2_mod4) + dem_shortrun
 effect4 <- (effect3 * lag1_mod4) +
   (effect2 * lag2_mod4) +
-  (effect1 * lag3_mod4) +
-  dem_shortrun
+  (effect1 * lag3_mod4) + dem_shortrun
 effect5 <- (effect4 * lag1_mod4) +
   (effect3 * lag2_mod4) +
   (effect2 * lag3_mod4) +
-  (effect1 * lag4_mod4) +
-  dem_shortrun
+  (effect1 * lag4_mod4) + dem_shortrun
 effect6 <- (effect5 * lag1_mod4) +
   (effect4 * lag2_mod4) +
   (effect3 * lag3_mod4) +
   (effect2 * lag4_mod4) +
-  (effect1 * lag5_mod4) +
-  dem_shortrun
+  (effect1 * lag5_mod4) + dem_shortrun
 effect7 <- (effect6 * lag1_mod4) +
   (effect5 * lag2_mod4) +
   (effect4 * lag3_mod4) +
   (effect3 * lag4_mod4) +
   (effect2 * lag5_mod4) +
-  (effect1 * lag6_mod4) +
-  dem_shortrun
+  (effect1 * lag6_mod4) + dem_shortrun
 effect8 <- (effect7 * lag1_mod4) +
   (effect6 * lag2_mod4) +
   (effect5 * lag3_mod4) +
   (effect4 * lag4_mod4) +
   (effect3 * lag5_mod4) +
   (effect2 * lag6_mod4) +
-  (effect1 * lag7_mod4) +
-  dem_shortrun
-effects_mod4 <- c(effect1, effect2, effect3, effect4,
-                  effect5, effect6, effect7, effect8)
-
+  (effect1 * lag7_mod4) + dem_shortrun
+effects_mod4 <- c(
+  effect1, effect2, effect3, effect4,
+  effect5, effect6, effect7, effect8
+)
 for (i in 9:30) {
-  eff <- (effects_mod4[i-1] * lag1_mod4) +
-    (effects_mod4[i-2] * lag2_mod4) +
-    (effects_mod4[i-3] * lag3_mod4) +
-    (effects_mod4[i-4] * lag4_mod4) +
-    (effects_mod4[i-5] * lag5_mod4) +
-    (effects_mod4[i-6] * lag6_mod4) +
-    (effects_mod4[i-7] * lag7_mod4) +
-    (effects_mod4[i-8] * lag8_mod4) +
+  eff <- (effects_mod4[i - 1] * lag1_mod4) +
+    (effects_mod4[i - 2] * lag2_mod4) +
+    (effects_mod4[i - 3] * lag3_mod4) +
+    (effects_mod4[i - 4] * lag4_mod4) +
+    (effects_mod4[i - 5] * lag5_mod4) +
+    (effects_mod4[i - 6] * lag6_mod4) +
+    (effects_mod4[i - 7] * lag7_mod4) +
+    (effects_mod4[i - 8] * lag8_mod4) +
     dem_shortrun
   effects_mod4 <- c(effects_mod4, eff)
 }
@@ -607,7 +589,6 @@ eff_25 <- round(
   c(eff_25_1, eff_25_2, eff_25_3, eff_25_4),
   3
 )
-print(eff_25)
 
 se1 <- sqrt(diag(vcov(model_1)))
 se2 <- sqrt(diag(vcov(model_2)))
@@ -683,6 +664,217 @@ override.se.4 <- c(
 
 ```{r}
 models <- list(model_1, model_2, model_3, model_4)
+texreg(
+  models,
+  override.coef = list(
+    override.coef.1,
+    override.coef.2,
+    override.coef.3,
+    override.coef.4
+  ),
+  override.se = list(
+    override.se.1,
+    override.se.2,
+    override.se.3,
+    override.se.4
+  ),
+  custom.model.names = c("(1)", "(2)", "(3)", "(4)"),
+  custom.coef.names = c(
+    "Democracy", "Lag 1", "Lag 2",
+    "Lag 3", "Lag 4", "Lag 5",
+    "Lag 6", "Lag 7", "Lag 8"
+  ),
+  custom.gof.rows = list(
+    "Persistence" = pers,
+    "Long run effect" = lre,
+    "Effect after 25 years" = eff_25
+  ),
+  file = "output/table_2_FE.tex",
+  caption = "Effect of Democracy on (Log) GDP per Capita"
+)
+```
+
+\input{output/table_2_FE.tex}
+
+## Table.6 (Shoya Abe)
+
+### Preprocessing
+
+```{r}
+data_t6 <- data %>%
+  group_by(country_name) %>%
+  arrange(year) %>%
+  mutate(
+    lag1 = dplyr::lag(y, 1),
+    lag2 = dplyr::lag(y, 2),
+    lag3 = dplyr::lag(y, 3),
+    lag4 = dplyr::lag(y, 4),
+    lag5 = dplyr::lag(y, 5),
+    lag6 = dplyr::lag(y, 6),
+    lag7 = dplyr::lag(y, 7),
+    lag8 = dplyr::lag(y, 8)
+  ) %>%
+  ungroup() %>%
+  pdata.frame(index = c("country_name", "year"))
+```
+
+### Estimation
+
+```{r}
+model_iv_1 <- plm(
+  y ~ dem + plm::lag(y, 1:4) |
+    plm::lag(demreg, 1) + plm::lag(y, 1:4),
+  data = data_t6,
+  effect = "twoways"
+)
+model_iv_2 <- plm(
+  y ~ dem + plm::lag(y, 1:4) |
+    plm::lag(demreg, 1:4) + plm::lag(y, 1:4),
+  data = data_t6,
+  effect = "twoways"
+)
+model_iv_3 <- plm(
+  y ~ dem + plm::lag(y, 1:4) + sov1 + sov2 + sov3 + sov4 |
+    plm::lag(demreg, 1:4) + plm::lag(y, 1:4) +
+    sov1 + sov2 + sov3 + sov4,
+  data = data_t6,
+  effect = "twoways"
+)
+model_iv_4 <- plm(
+  y ~ dem + plm::lag(y, 1:4) +
+    rtrend2 + rtrend3 + rtrend4 + rtrend5 + rtrend6 + rtrend7 |
+    plm::lag(demreg, 1:4) + plm::lag(y, 1:4) +
+    rtrend2 + rtrend3 + rtrend4 + rtrend5 + rtrend6 + rtrend7,
+  data = data_t6,
+  effect = "twoways",
+  model = "within"
+)
+
+beta_hat_1 <- coef(model_iv_1)["dem"]
+gamma_hat_1 <- coef(model_iv_1)[2:5]
+long_run_effect_1 <- beta_hat_1 / (1 - sum(gamma_hat_1))
+
+beta_hat_2 <- coef(model_iv_2)["dem"]
+gamma_hat_2 <- coef(model_iv_2)[2:5]
+long_run_effect_2 <- beta_hat_2 / (1 - sum(gamma_hat_2))
+
+beta_hat_3 <- coef(model_iv_3)["dem"]
+gamma_hat_3 <- coef(model_iv_3)[2:5]
+long_run_effect_3 <- beta_hat_3 / (1 - sum(gamma_hat_3))
+
+beta_hat_4 <- coef(model_iv_4)["dem"]
+gamma_hat_4 <- coef(model_iv_4)[2:5]
+long_run_effect_4 <- beta_hat_4 / (1 - sum(gamma_hat_4))
+
+lre <- round(
+  c(long_run_effect_1, long_run_effect_2,
+    long_run_effect_3, long_run_effect_4),
+  3
+)
+
+sre <- c()
+
+dem_shortrun <- coef(model_iv_1)["dem"]
+lag1 <- coef(model_iv_1)[2]
+lag2 <- coef(model_iv_1)[3]
+lag3 <- coef(model_iv_1)[4]
+lag4 <- coef(model_iv_1)[5]
+effect1 <- dem_shortrun
+effect2 <- effect1 * lag1 + dem_shortrun
+effect3 <- effect2 * lag1 + effect1 * lag2 + dem_shortrun
+effect4 <- effect3 * lag1 + effect2 * lag2 +
+  effect1 * lag3 + dem_shortrun
+effects <- c(effect1, effect2, effect3, effect4)
+for (i in 5:30) {
+  eff <- effects[i - 1] * lag1 +
+    effects[i - 2] * lag2 +
+    effects[i - 3] * lag3 +
+    effects[i - 4] * lag4 + dem_shortrun
+  effects <- c(effects, eff)
+}
+sre <- c(sre, effects[25])
+
+dem_shortrun <- coef(model_iv_2)["dem"]
+lag1 <- coef(model_iv_2)[2]
+lag2 <- coef(model_iv_2)[3]
+lag3 <- coef(model_iv_2)[4]
+lag4 <- coef(model_iv_2)[5]
+effect1 <- dem_shortrun
+effect2 <- effect1 * lag1 + dem_shortrun
+effect3 <- effect2 * lag1 + effect1 * lag2 + dem_shortrun
+effect4 <- effect3 * lag1 + effect2 * lag2 +
+  effect1 * lag3 + dem_shortrun
+effects <- c(effect1, effect2, effect3, effect4)
+for (i in 5:30) {
+  eff <- effects[i - 1] * lag1 +
+    effects[i - 2] * lag2 +
+    effects[i - 3] * lag3 +
+    effects[i - 4] * lag4 + dem_shortrun
+  effects <- c(effects, eff)
+}
+sre <- c(sre, effects[25])
+
+dem_shortrun <- coef(model_iv_3)["dem"]
+lag1 <- coef(model_iv_3)[2]
+lag2 <- coef(model_iv_3)[3]
+lag3 <- coef(model_iv_3)[4]
+lag4 <- coef(model_iv_3)[5]
+effect1 <- dem_shortrun
+effect2 <- effect1 * lag1 + dem_shortrun
+effect3 <- effect2 * lag1 + effect1 * lag2 + dem_shortrun
+effect4 <- effect3 * lag1 + effect2 * lag2 +
+  effect1 * lag3 + dem_shortrun
+effects <- c(effect1, effect2, effect3, effect4)
+for (i in 5:30) {
+  eff <- effects[i - 1] * lag1 +
+    effects[i - 2] * lag2 +
+    effects[i - 3] * lag3 +
+    effects[i - 4] * lag4 + dem_shortrun
+  effects <- c(effects, eff)
+}
+sre <- c(sre, effects[25])
+
+dem_shortrun <- coef(model_iv_4)["dem"]
+lag1 <- coef(model_iv_4)[2]
+lag2 <- coef(model_iv_4)[3]
+lag3 <- coef(model_iv_4)[4]
+lag4 <- coef(model_iv_4)[5]
+effect1 <- dem_shortrun
+effect2 <- effect1 * lag1 + dem_shortrun
+effect3 <- effect2 * lag1 + effect1 * lag2 + dem_shortrun
+effect4 <- effect3 * lag1 + effect2 * lag2 +
+  effect1 * lag3 + dem_shortrun
+effects <- c(effect1, effect2, effect3, effect4)
+for (i in 5:30) {
+  eff <- effects[i - 1] * lag1 +
+    effects[i - 2] * lag2 +
+    effects[i - 3] * lag3 +
+    effects[i - 4] * lag4 + dem_shortrun
+  effects <- c(effects, eff)
+}
+sre <- c(sre, effects[25])
+
+sre <- round(sre, 3)
+
+pers1 <- sum(coef(model_iv_1)[2:5])
+pers2 <- sum(coef(model_iv_2)[2:5])
+pers3 <- sum(coef(model_iv_3)[2:5])
+pers4 <- sum(coef(model_iv_4)[2:5])
+pers <- round(c(pers1, pers2, pers3, pers4), 3)
+```
+
+### Tabulation
+
+```{r}
+override.coef.1 <- coef(model_iv_1)["dem", drop = FALSE]
+override.coef.2 <- coef(model_iv_2)["dem", drop = FALSE]
+override.coef.3 <- coef(model_iv_3)["dem", drop = FALSE]
+override.coef.4 <- coef(model_iv_4)["dem", drop = FALSE]
+override.se.1 <- sqrt(diag(vcov(model_iv_1)))["dem"]
+override.se.2 <- sqrt(diag(vcov(model_iv_2)))["dem"]
+override.se.3 <- sqrt(diag(vcov(model_iv_3)))["dem"]
+override.se.4 <- sqrt(diag(vcov(model_iv_4)))["dem"]
+models <- list(model_iv_1, model_iv_2, model_iv_3, model_iv_4)
 
 texreg(
   models,
@@ -699,26 +891,25 @@ texreg(
     override.se.4
   ),
   custom.model.names = c(
-    "(1)", "(2)", "(3)", "(4)"
+    "1 Lag", "4 Lags",
+    "Soviet Dummies",
+    "Regional Trends"
   ),
-  custom.coef.names = c(
-    "Democracy", "Lag 1", "Lag 2",
-    "Lag 3", "Lag 4", "Lag 5",
-    "Lag 6", "Lag 7", "Lag 8"
-  ),
+  custom.coef.map = list(dem = "Democracy"),
   custom.gof.rows = list(
-    "Persistence"          = pers,
-    "Long run effect"      = lre,
-    "Effect after 25 years" = eff_25
+    "Persistence" = pers,
+    "Long run effect" = lre,
+    "Effect after 25 years" = sre
   ),
-  file = "output/table_2_FE.tex",
-  caption = "Effect of Democracy on (Log) GDP per Capita"
+  file = "output/table_6_iv.tex",
+  caption = "Effect of Democracy on (Log) GDP per Capita",
+  include.rsquared = FALSE,
+  include.adjrs = FALSE,
+  include.fstat = FALSE
 )
 ```
 
-\input{output/table_2_FE.tex}
-
-## Table.6
+\input{output/table_6_iv.tex}
 
 # Extention
 
@@ -726,29 +917,26 @@ texreg(
 
 # Appendix
 
-## List of Variables
+## List of Variables (Shoya Abe)
 
 ```{r}
 var_labels <- sapply(data, function(x) attr(x, "label"))
-
-list_var <- tibble::tibble(
+list_var <- tibble(
   variable = names(var_labels),
-  label    = var_labels
+  label = var_labels
 )
 
 kable(
-  list_var,                
-  format    = "latex",      
-  booktabs  = TRUE,         
-  longtable = TRUE,         
-  caption   = "List of Variables"
+  list_var,
+  format = "latex",
+  booktabs = TRUE,
+  longtable = TRUE,
+  caption = "List of Variables"
 ) %>%
-  kable_styling(
-    latex_options = c("repeat_header")
-  )
+  kable_styling(latex_options = "repeat_header")
 ```
 
-## Arellano Bond Estimation for Table.2
+## Arellano Bond Estimation for Table.2 (Shoya Abe)
 
 ```{r, echo=TRUE, eval=FALSE}
 data_t2 <- data %>%
@@ -767,19 +955,27 @@ data_t2 <- data %>%
   ) %>%
   ungroup()
 
-data_m1 <- data_t2 %>% drop_na(y, dem, lag1)
-data_m1 <- pdata.frame(data_m1, index = c("country_name", "year"))
-data_m2 <- data_t2 %>% drop_na(y, dem, lag1, lag2)
-data_m2 <- pdata.frame(data_m2, index = c("country_name", "year"))
-data_m3 <- data_t2 %>% drop_na(y, dem, lag1, lag2, lag3, lag4)
-data_m3 <- pdata.frame(data_m3, index = c("country_name", "year"))
-data_m4 <- data_t2 %>% drop_na(y, dem, lag1, lag2, lag3, lag4, lag5, lag6, lag7, lag8)
-data_m4 <- pdata.frame(data_m4, index = c("country_name", "year"))
+data_m1 <- data_t2 %>%
+  drop_na(y, dem, lag1) %>%
+  pdata.frame(index = c("country_name", "year"))
+data_m2 <- data_t2 %>%
+  drop_na(y, dem, lag1, lag2) %>%
+  pdata.frame(index = c("country_name", "year"))
+data_m3 <- data_t2 %>%
+  drop_na(y, dem, lag1, lag2, lag3, lag4) %>%
+  pdata.frame(index = c("country_name", "year"))
+data_m4 <- data_t2 %>%
+  drop_na(
+    y, dem, lag1, lag2, lag3, lag4,
+    lag5, lag6, lag7, lag8
+  ) %>%
+  pdata.frame(index = c("country_name", "year"))
 
 maxlag <- 49
 
 model_1_gmm <- pgmm(
-  y ~ dem + lag(y, 1) | lag(y, 2:maxlag) + lag(dem, 1:maxlag),
+  y ~ dem + lag(y, 1) |
+    lag(y, 2:maxlag) + lag(dem, 1:maxlag),
   data = data_m1,
   effect = "twoways",
   model = "twosteps",
@@ -787,7 +983,8 @@ model_1_gmm <- pgmm(
 )
 
 model_2_gmm <- pgmm(
-  y ~ dem + lag(y, 1) + lag(y, 2) | lag(y, 2:maxlag) + lag(dem, 1:maxlag),
+  y ~ dem + lag(y, 1) + lag(y, 2) |
+    lag(y, 2:maxlag) + lag(dem, 1:maxlag),
   data = data_m2,
   effect = "twoways",
   model = "twosteps",
@@ -795,7 +992,9 @@ model_2_gmm <- pgmm(
 )
 
 model_3_gmm <- pgmm(
-  y ~ dem + lag(y, 1) + lag(y, 2) + lag(y, 3) + lag(y, 4) | lag(y, 2:maxlag) + lag(dem, 1:maxlag),
+  y ~ dem + lag(y, 1) + lag(y, 2) +
+    lag(y, 3) + lag(y, 4) |
+    lag(y, 2:maxlag) + lag(dem, 1:maxlag),
   data = data_m3,
   effect = "twoways",
   model = "twosteps",
@@ -803,8 +1002,10 @@ model_3_gmm <- pgmm(
 )
 
 model_4_gmm <- pgmm(
-  y ~ dem + lag(y, 1) + lag(y, 2) + lag(y, 3) + lag(y, 4) +
-    lag(y, 5) + lag(y, 6) + lag(y, 7) + lag(y, 8) |
+  y ~ dem + lag(y, 1) + lag(y, 2) +
+    lag(y, 3) + lag(y, 4) +
+    lag(y, 5) + lag(y, 6) +
+    lag(y, 7) + lag(y, 8) |
     lag(y, 2:maxlag) + lag(dem, 1:maxlag),
   data = data_m4,
   effect = "twoways",
@@ -825,7 +1026,7 @@ compute_dynamic_effect <- function(dem_coef, lag_coefs, n_periods) {
       effects[i] <- eff
     }
   }
-  return(effects[n_periods])
+  effects[n_periods]
 }
 
 coef_1 <- coef(model_1_gmm)
@@ -833,7 +1034,9 @@ dem_coef_1 <- coef_1["dem"]
 lag1_1 <- coef_1["lag(y, 1)"]
 lre1 <- dem_coef_1 / (1 - lag1_1)
 pers1 <- lag1_1
-eff_25_1 <- compute_dynamic_effect(dem_coef_1, c(lag1_1), 25)
+eff_25_1 <- compute_dynamic_effect(
+  dem_coef_1, c(lag1_1), 25
+)
 
 coef_2 <- coef(model_2_gmm)
 dem_coef_2 <- coef_2["dem"]
@@ -841,7 +1044,9 @@ lag1_2 <- coef_2["lag(y, 1)"]
 lag2_2 <- coef_2["lag(y, 2)"]
 lre2 <- dem_coef_2 / (1 - (lag1_2 + lag2_2))
 pers2 <- lag1_2 + lag2_2
-eff_25_2 <- compute_dynamic_effect(dem_coef_2, c(lag1_2, lag2_2), 25)
+eff_25_2 <- compute_dynamic_effect(
+  dem_coef_2, c(lag1_2, lag2_2), 25
+)
 
 coef_3 <- coef(model_3_gmm)
 dem_coef_3 <- coef_3["dem"]
@@ -849,9 +1054,12 @@ lag1_3 <- coef_3["lag(y, 1)"]
 lag2_3 <- coef_3["lag(y, 2)"]
 lag3_3 <- coef_3["lag(y, 3)"]
 lag4_3 <- coef_3["lag(y, 4)"]
-lre3 <- dem_coef_3 / (1 - (lag1_3 + lag2_3 + lag3_3 + lag4_3))
+lre3 <- dem_coef_3 / (1 - (lag1_3 +
+  lag2_3 + lag3_3 + lag4_3))
 pers3 <- lag1_3 + lag2_3 + lag3_3 + lag4_3
-eff_25_3 <- compute_dynamic_effect(dem_coef_3, c(lag1_3, lag2_3, lag3_3, lag4_3), 25)
+eff_25_3 <- compute_dynamic_effect(
+  dem_coef_3, c(lag1_3, lag2_3, lag3_3, lag4_3), 25
+)
 
 coef_4 <- coef(model_4_gmm)
 dem_coef_4 <- coef_4["dem"]
@@ -863,13 +1071,26 @@ lag5_4 <- coef_4["lag(y, 5)"]
 lag6_4 <- coef_4["lag(y, 6)"]
 lag7_4 <- coef_4["lag(y, 7)"]
 lag8_4 <- coef_4["lag(y, 8)"]
-lre4 <- dem_coef_4 / (1 - (lag1_4 + lag2_4 + lag3_4 + lag4_4 + lag5_4 + lag6_4 + lag7_4 + lag8_4))
-pers4 <- lag1_4 + lag2_4 + lag3_4 + lag4_4 + lag5_4 + lag6_4 + lag7_4 + lag8_4
-eff_25_4 <- compute_dynamic_effect(dem_coef_4, c(lag1_4, lag2_4, lag3_4, lag4_4, lag5_4, lag6_4, lag7_4, lag8_4), 25)
+lre4 <- dem_coef_4 / (1 - (lag1_4 +
+  lag2_4 + lag3_4 + lag4_4 + lag5_4 +
+  lag6_4 + lag7_4 + lag8_4))
+pers4 <- lag1_4 + lag2_4 + lag3_4 +
+  lag4_4 + lag5_4 + lag6_4 + lag7_4 + lag8_4
+eff_25_4 <- compute_dynamic_effect(
+  dem_coef_4,
+  c(
+    lag1_4, lag2_4, lag3_4, lag4_4,
+    lag5_4, lag6_4, lag7_4, lag8_4
+  ),
+  25
+)
 
 lre <- round(c(lre1, lre2, lre3, lre4), 3)
 pers <- round(c(pers1, pers2, pers3, pers4), 3)
-eff_25 <- round(c(eff_25_1, eff_25_2, eff_25_3, eff_25_4), 3)
+eff_25 <- round(
+  c(eff_25_1, eff_25_2, eff_25_3, eff_25_4),
+  3
+)
 
 se1 <- sqrt(diag(vcov(model_1_gmm)))
 se2 <- sqrt(diag(vcov(model_2_gmm)))
@@ -941,12 +1162,23 @@ models <- list(model_1_gmm, model_2_gmm, model_3_gmm, model_4_gmm)
 
 texreg(
   models,
-  override.coef = list(override.coef.1, override.coef.2, override.coef.3, override.coef.4),
-  override.se = list(override.se.1, override.se.2, override.se.3, override.se.4),
+  override.coef = list(
+    override.coef.1,
+    override.coef.2,
+    override.coef.3,
+    override.coef.4
+  ),
+  override.se = list(
+    override.se.1,
+    override.se.2,
+    override.se.3,
+    override.se.4
+  ),
   custom.model.names = c("(1)", "(2)", "(3)", "(4)"),
   custom.coef.names = c(
-    "Democracy", "Lag 1", "Lag 2", "Lag 3", "Lag 4",
-    "Lag 5", "Lag 6", "Lag 7", "Lag 8"
+    "Democracy", "Lag 1", "Lag 2",
+    "Lag 3", "Lag 4", "Lag 5",
+    "Lag 6", "Lag 7", "Lag 8"
   ),
   custom.gof.rows = list(
     "Persistence" = pers,
