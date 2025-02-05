@@ -19,6 +19,8 @@ output:
     toc: true
     toc_depth: 3
     number_sections: true
+bibliography: references.bib
+nocite: '@*'
 header-includes:
   - \usepackage{booktabs}
   - \usepackage{float}
@@ -84,56 +86,56 @@ summarize_data <- function(data, n = 10) {
 summarize_data(data)
 ```
 
-## Empirical Methods (Shoya Abe)
+## Econometric Methods (Shoya Abe)
 
-Here, we will briefly explain the empirical methods we use for replication. The original paper used a number of emiprical methods to strengthen the robustness of the results. Among them, we reproduce three methods\footnote{We also worked on Arellano Bond estimation in table.2. However, it took an enormous amount of computation time and the results obtained were quite different from the original results. In other words, replication failed. However, in the belief that it is desirable to disclose the entire analysis process and results, we disclose the analysis code and results in the appendix.}.
+Here, we briefly explain the empirical methods we use for replication. The original paper used a number of emiprical methods to strengthen the robustness of the results. Among them, we reproduce three methods\footnote{We also worked on Arellano Bond estimation in table.2. However, it took an enormous amount of computation time and the results obtained were quite different from the original results. In other words, replication failed. However, in the belief that it is desirable to disclose the entire analysis process and results, we disclose the analysis code and results in the appendix.}.
 
 ### Event Study (Figure.1)
 
 First, we conduct the event study. We estimate the average treatment effect (ATT) for the treated group using the procedure described below.
 
 First, let \( T_c \) denote the year in which a given country experienced the democratization event. For any country \( c \) and year \( t \), we define the relative year as
-\begin{align*}
+\begin{align}
 \tau_{c,t} = t - T_c.
-\end{align*}
+\end{align}
 Then, taking the outcome \( y \) in the year immediately preceding democratization (i.e., when \( \tau = -1 \)) as the baseline, the outcome of interest is defined as
-\begin{align*}
+\begin{align}
 \text{gdpDiff}_{c,t} = y_{c,t} - y_{c,T_c-1}.
-\end{align*}
+\end{align}
 
 Next, we estimate the following regression model using the control group that did not experience democratization:
-\begin{align*}
+\begin{align}
 \text{gdpDiff}_{c,t} = \sum_{\tau=-15,\ \tau\neq -1}^{30} \beta_{\tau} \, \mathbf{1}\{\tau_{c,t} = \tau\} + \epsilon_{c,t}.
-\end{align*}
+\end{align}
 
 The estimated coefficient \( \hat{\beta}_{\tau_{c,t}} \) from (3) can be interpreted as the counterfactual outcome for country \( c \) in year \( t \) in the absence of democratization. Therefore, the average difference between the observed outcome and this counterfactual outcome provides an estimate of the ATT for relative year \( \tau \), which is calculated as
-\begin{align*}
+\begin{align}
 \text{ATT}(\tau) = \frac{1}{N_{\tau}^{\text{treated}}} \sum_{\substack{(c,t) \in \text{treated} \\ \tau_{c,t} = \tau}} \Bigl( \text{gdpDiff}_{c,t} - \hat{\beta}_{\tau} \Bigr).
-\end{align*}
+\end{align}
 
 
 ### Dynamic Liner Panel Model (Table.2)
 
-Next, we will estimate the following dynamic linear panel model.
-\begin{align*}
+Next, we estimate the following dynamic linear panel model.
+\begin{align}
 &y_{ct} = \beta D_{ct} + \gamma_1 y_{ct-1} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{1} \\
 &y_{ct} = \beta D_{ct} + \sum_{j = 1}^2 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{2} \\
 &y_{ct} = \beta D_{ct} + \sum_{j = 1}^4 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{3} \\
 &y_{ct} = \beta D_{ct} + \sum_{j = 1}^8 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{4}
-\end{align*}
+\end{align}
 where $y_{ct}$ is the log of GDP per capita in country $c$ at time $t$ and $D_{ct}$ is a dummy variable that takes the value 1 if country $c$ is a democracy at time $t$ and 0 otherwise.
 
 ### Instrumental Variable (IV) Method (Table.6)
 
-Finally, we will perform the instrumental variable method. The instrumental variables used in this analysis are as follows.
-\begin{align*}
+Finally, we perform the instrumental variable (IV) method. The instrumental variables used in this analysis are as follows.
+\begin{align}
 Z_{ct} = \frac{1}{|I_c|} \sum_{{c^*} \in I_c} D_{ {c^*} t}. \tag{5}
-\end{align*}
+\end{align}
 Using this instrumental variable, we will perform the following 2SLS estimation.
-\begin{align*}
+\begin{align}
 & y_{ct} = \beta D_{ct} + \sum_{j=1}^p \gamma y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \\
 & D_{ct} = \sum_{j=1}^q \pi_j Z_{ct-j} + \sum_{j=1}^p \phi_j y_{ct-j} + \theta_c + \mu_t + v_{ct} \tag{6}
-\end{align*}
+\end{align}
 
 # Replication
 
@@ -267,7 +269,7 @@ ggsave(
 )
 ```
 
-![Event Study](output/figure_1.pdf)
+![The Long-Term Impact of Democratization on Economic Growth](output/figure_1.pdf)
 
 ## Table.1 (Honoka Ohtani)
 
@@ -277,11 +279,11 @@ ggsave(
 var_info <- tibble(
   var = c(
     "gdppercapitaconstant2000us",
-    "ginv",
-    "tradewb",
-    "prienr",
-    "secenr",
-    "taxratio",
+    "loginvpc",
+    "ltrade2",
+    "lp_bl",
+    "ls_bl",
+    "lgov",
     "mortnew",
     "unrestn",
     "marketref"
@@ -299,64 +301,36 @@ var_info <- tibble(
   )
 )
 
-calc_summary <- function(df, var, group_var) {
-  df %>%
-    filter(!is.na(.data[[var]])) %>%
-    group_by({{ group_var }}) %>%
-    summarise(
-      Observations = n(),
-      Mean = mean(.data[[var]], na.rm = TRUE),
-      SD = sd(.data[[var]], na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    mutate(Variable = var)
-}
-
-var_list <- var_info$var
+data_sub <- data %>%
+  select(dem, all_of(var_info$var))
 ```
 
 ### Caliculation
 
 ```{r}
-summary_table <- lapply(
-  var_list,
-  function(x) calc_summary(data, x, dem)
-) %>%
-  bind_rows() %>%
-  pivot_wider(
-    names_from = dem,
-    values_from = c(Observations, Mean, SD),
-    names_glue = "{.value}_dem{dem}"
-  ) %>%
-  rename(
-    Observations_Nondem = Observations_dem0,
-    Mean_Nondem = Mean_dem0,
-    SD_Nondem = SD_dem0,
-    Observations_Dem = Observations_dem1,
-    Mean_Dem = Mean_dem1,
-    SD_Dem = SD_dem1
-  ) %>%
-  left_join(var_info, by = c("Variable" = "var")) %>%
-  select(
-    label,
-    Observations_Nondem,
-    Mean_Nondem,
-    SD_Nondem,
-    Observations_Dem,
-    Mean_Dem,
-    SD_Dem
-  ) %>%
-  rename(Variable = label)
+calc_stats <- function(variable) {
+  non_demo <- data_sub %>%
+    filter(dem == 0) %>%
+    pull(.data[[variable]])
+  non_demo <- non_demo[!is.na(non_demo)]
+  demo <- data_sub %>%
+    filter(dem == 1) %>%
+    pull(.data[[variable]])
+  demo <- demo[!is.na(demo)]
+  tibble(
+    var = variable,
+    n_non_demo = length(non_demo),
+    mean_non_demo = mean(non_demo),
+    sd_non_demo = sd(non_demo),
+    n_demo = length(demo),
+    mean_demo = mean(demo),
+    sd_demo = sd(demo)
+  )
+}
 
-colnames(summary_table) <- c(
-  "Variable",
-  "Observations",
-  "Mean",
-  "SD",
-  "Observations",
-  "Mean",
-  "SD"
-)
+summary_table <- map_dfr(var_info$var, calc_stats) %>%
+  left_join(var_info, by = "var") %>%
+  select(label, n_non_demo, mean_non_demo, sd_non_demo, n_demo, mean_demo, sd_demo)
 ```
 
 ### Tabulation
@@ -367,11 +341,10 @@ latex_table <- summary_table %>%
     caption = "Summary Statistics by Democracy Status",
     format = "latex",
     booktabs = TRUE,
-    digits = 2
+    digits = 2,
+    col.names = c("", "N", "Mean", "SD", "N", "Mean", "SD")
   ) %>%
-  add_header_above(
-    c(" " = 1, "Nondemocracies" = 3, "Democracies" = 3)
-  ) %>%
+  add_header_above(c(" " = 1, "Nondemocracies" = 3, "Democracies" = 3)) %>%
   kable_styling(latex_options = c("HOLD_position", "striped"))
 
 save_kable(latex_table, file = "output/table_1.tex")
@@ -912,6 +885,102 @@ texreg(
 \input{output/table_6_iv.tex}
 
 # Extention
+
+## Confidence Interval by the Bootstrap Method (Shoya Abe)
+
+In Figure 1 of the original paper, confidence intervals are not presented. We employ the bootstrap method to derive the confidence interval for the estimated ATT. This allows us to visualize the uncertainty associated with the estimated ATT.
+
+### Bootstrap Method
+
+We explain the bootstrap method used in our analysis. The bootstrap method is a computational simulation technique that allows us to estimate the distribution of a statistic in a finite sample. The procedure is conducted as follows:
+\begin{enumerate}
+    \item Randomly draw \( n \) observations with replacement from the original sample to generate \( n \) bootstrap samples.
+    \item Estimate the ATT for each bootstrap sample.
+    \item Compute the standard error of the ATT estimates obtained from the bootstrap samples.
+    \item Use this standard error to estimate the confidence interval.
+\end{enumerate}
+Here, we derive the confidence interval using two different methods. The first method assumes that the distribution of the estimated ATT follows a normal distribution and estimates the confidence interval using the 2.5\% and 97.5\% percentiles. This corresponds to the light blue-shaded interval in Figure 3. The second method estimates the confidence interval using the 2.5\% and 97.5\% percentiles of the bootstrap distribution. This corresponds to the pink-shaded interval in Figure 3.
+
+### Estimation
+
+We estimate the confidence interval by executing the following code. The number of bootstrap replications is 200.
+
+```{r, echo=TRUE, eval=FALSE}
+compute_atets <- function(data_boot) {
+  original_data <- data_f1
+  data_f1 <<- data_boot
+  out <- numeric(length(relative_times))
+  for (i in seq_along(relative_times)) {
+    t_val <- relative_times[i]
+    if (t_val < 0) {
+      col_name <- paste0("gdpDiff_m", abs(t_val))
+    } else {
+      col_name <- if (t_val == 0) "gdpDiff_0" else paste0("gdpDiff_p", t_val)
+    }
+    out[i] <- estimateATT(col_name)
+  }
+  data_f1 <<- original_data
+  out
+}
+
+B <- 200
+set.seed(123)
+boot_mat <- matrix(NA, nrow = B, ncol = length(relative_times))
+unique_ids <- unique(data_f1$id)
+
+for (b in seq_len(B)) {
+  sampled_ids <- sample(unique_ids, size = length(unique_ids), replace = TRUE)
+  bs_data <- lapply(sampled_ids, function(x) {
+    data_f1[data_f1$id == x, ]
+  }) %>% bind_rows()
+  boot_mat[b, ] <- compute_atets(bs_data)
+}
+
+boot_se <- apply(boot_mat, 2, sd, na.rm = TRUE)
+ci_lower_normal <- atets - 1.96 * boot_se
+ci_upper_normal <- atets + 1.96 * boot_se
+
+ci_lower_perc <- apply(boot_mat, 2, quantile, probs = 0.025, na.rm = TRUE)
+ci_upper_perc <- apply(boot_mat, 2, quantile, probs = 0.975, na.rm = TRUE)
+
+results_with_ci <- data.frame(
+  RelativeTime = relative_times,
+  ATT = atets,
+  ciL_normal = ci_lower_normal,
+  ciU_normal = ci_upper_normal,
+  ciL_perc = ci_lower_perc,
+  ciU_perc = ci_upper_perc
+)
+```
+
+### Plot
+
+```{r, echo=TRUE, eval=FALSE}
+figure_1_withCI <- ggplot(results_with_ci, aes(x = RelativeTime, y = ATT)) +
+  geom_line(color = "black") +
+  geom_ribbon(aes(ymin = ciL_perc, ymax = ciU_perc), fill = "pink", alpha = 0.3) +
+  geom_ribbon(aes(ymin = ciL_normal, ymax = ciU_normal), fill = "skyblue", alpha = 0.3) +
+  scale_x_continuous(breaks = seq(-15, 30, 5)) +
+  labs(
+    x = "Years around Democratization",
+    y = "Change in GDP per capita (log points)"
+  ) +
+  theme_bw()
+
+ggsave("output/figure_1_withCI.pdf", 
+       figure_1_withCI, 
+       width = 14, 
+       height = 8, 
+       units = "cm")
+```
+
+![The Long-Term Impact of Democratization on Economic Growth (with the confidence interval)](output/figure_1_withCI.pdf)
+
+Figure 1 appears to strongly support the claim that "Democracy does cause growth". However, when we look at Figure 2, which includes confidence intervals, the picture changes completely. While we do not deny that democratization has a positive effect on economic growth, it becomes clear that the long-term effects of democratization on economic growth are highly uncertain. Perhaps the authors chose not to display the confidence intervals, even if unintentionally, in a way that emphasized the claim that "Democracy does cause growth."
+
+# References
+::: {#refs}
+:::
 
 \newpage
 

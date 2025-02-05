@@ -12,9 +12,6 @@ dplyr
 stringr
 forcats
 lubridate
-fastDummies
-skimr
 kableExtra
 plm
-stargazer
 texreg
