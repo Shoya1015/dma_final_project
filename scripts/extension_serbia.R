@@ -1,0 +1,157 @@
+# -------------------------------
+# 0. 必要パッケージの読み込み
+# -------------------------------
+pacman::p_load(
+  tidyverse,
+  haven,
+  Synth
+)
+
+# -------------------------------
+# 1. データの読み込み
+# -------------------------------
+data <- read_dta("data/raw/DDCGdata_final.dta") 
+
+# -------------------------------
+# 2. 対象国の定義
+#    ※治療対象（Serbia：2000年の革命対象）に加え、セルビアと類似すると考えた以下の10か国を選定
+#    ※ここでは例として国名を記述（データ内の国名と一致するように調整すること）
+# -------------------------------
+countries <- c("Serbia", 
+               "Bosnia and Herzegovina", "Kosovo", "Montenegro", 
+               "North Macedonia", "Croatia", "Albania", 
+               "Bulgaria", "Romania", "Hungary", "Moldova")
+
+# -------------------------------
+# 3. 対象国のデータのみ抽出
+# -------------------------------
+data_arsynth <- data %>%
+  filter(country_name %in% countries)
+
+# -------------------------------
+# 4. アウトカム変数 y の欠測値がある行を削除
+# -------------------------------
+data_arsynth <- data_arsynth %>%
+  filter(!is.na(y))
+
+# -------------------------------
+# 5. 欠測値のない変数のみ抽出するための列名を取得
+# -------------------------------
+cols_no_na <- names(data_arsynth)[colSums(is.na(data_arsynth)) == 0]
+
+# -------------------------------
+# 6. 欠測値のない列のみ抽出して新たなデータセットを作成
+# -------------------------------
+data_arsynth <- data_arsynth %>%
+  select(all_of(cols_no_na))
+
+# -------------------------------
+# 7. country_name を因子に変換し、数値型の識別子 unit_num を作成
+# -------------------------------
+data_arsynth$country_name <- factor(data_arsynth$country_name, levels = countries)
+data_arsynth$unit_num <- as.numeric(data_arsynth$country_name)
+
+# -------------------------------
+# 8. 共変量の変数名をまとめる
+#    （※例として、人口や貿易関連指標、政情不安等を使用；後日変更可能）
+# -------------------------------
+covariates <- c("PopulationtotalSPPOPTOTL",
+                "tradewbreg",
+                "unrestreg",
+                "areakm2")
+
+# -------------------------------
+# 9. アウトカム（y）と共変量を数値型に変換し、欠測値のある行を削除
+# -------------------------------
+cols_to_convert <- c("y", covariates)
+data_arsynth[cols_to_convert] <- lapply(data_arsynth[cols_to_convert], 
+                                        function(x) as.numeric(as.character(x)))
+data_arsynth <- data_arsynth %>% 
+  filter(complete.cases(.[, cols_to_convert]))
+
+# -------------------------------
+# 10. Synth パッケージは base R の data.frame を要求するため、
+#     tibble を data.frame に変換
+# -------------------------------
+data_arsynth <- as.data.frame(data_arsynth)
+
+# -------------------------------
+# 【新規追加】バランスドパネル作成：
+# プロット期間（1960～2010年）に全ての年が観測されている単位のみ抽出
+# -------------------------------
+years_all <- 1960:2010               # プロット期間の年の範囲
+n_years_total <- length(years_all)   # 必要な年数
+
+# 各単位について、観測されている年数を確認
+complete_units <- data_arsynth %>%
+  group_by(unit_num) %>%
+  summarize(n_years = n_distinct(year)) %>%
+  filter(n_years == n_years_total) %>%  # 全ての年が存在する単位のみ抽出
+  pull(unit_num)
+
+# バランスドパネルデータを作成
+data_balanced <- data_arsynth %>%
+  filter(unit_num %in% complete_units)
+
+# -------------------------------
+# 【修正ポイント】
+# バランスドパネル作成後に治療群とコントロール群の識別子を再抽出
+# ※treatment_id は1つの値である必要があるため、[1] を付与
+# -------------------------------
+treatment_id <- unique(data_balanced$unit_num[data_balanced$country_name == "Serbia"])[1]
+controls_id  <- unique(data_balanced$unit_num[data_balanced$country_name != "Serbia"])
+
+# -------------------------------
+# 11. dataprep 関数による合成コントロール法用のデータ整形
+#     ※介入（革命）の実施年が2000年であるため、事前期間は1960～1999年とする
+#     ※また、special.predictors にも適切な期間区分を設定（例：5年ごとの区分）
+# -------------------------------
+dataprep_out <- dataprep(
+  foo = data_balanced,                 # バランスドパネルデータを指定
+  predictors = covariates,             # 共変量
+  predictors.op = "mean",              # 指定期間中の平均値を利用
+  time.predictors.prior = 1960:1999,     # 事前期間を指定（介入前：2000年以前）
+  
+  special.predictors = list(
+    list("y", 1960:1964, "mean"),
+    list("y", 1965:1969, "mean"),
+    list("y", 1970:1974, "mean"),
+    list("y", 1975:1979, "mean"),
+    list("y", 1980:1984, "mean"),
+    list("y", 1985:1989, "mean"),
+    list("y", 1990:1994, "mean"),
+    list("y", 1995:1999, "mean")
+  ),
+  
+  dependent = "y",                     # アウトカム変数（例：経済成長 y）
+  unit.variable = "unit_num",          # 数値型の単位識別子を指定
+  time.variable = "year",              # 時間変数の指定
+  treatment.identifier = treatment_id, # 治療対象（Serbia）のID
+  controls.identifier = controls_id,   # コントロール群のID
+  time.optimize.ssr = 1960:1999,         # SSR最適化の期間（介入前）
+  time.plot = 1960:2010                # プロット期間の指定
+)
+
+# -------------------------------
+# 12. synth 関数による合成コントロールの推定
+# -------------------------------
+synth_out <- synth(dataprep_out)
+
+# -------------------------------
+# 13. 結果の表示・プロット
+# -------------------------------
+
+# (a) 結果のテーブル表示（各変数の重みなど）
+synth_tables <- synth.tab(dataprep.res = dataprep_out, synth.res = synth_out)
+print(synth_tables)
+
+# (b) 治療対象（Serbia）と合成コントロールの推定値のプロット
+path.plot(synth.res = synth_out, dataprep.res = dataprep_out,
+          Ylab = "アウトカム (経済成長 y)", Xlab = "年",
+          Legend = c("Serbia", "Synthetic Serbia"),
+          Main = "合成コントロール法: Serbia vs. Synthetic Serbia")
+
+# (c) アウトカムのギャップ（実測値 - 合成コントロール）のプロット
+gaps.plot(synth.res = synth_out, dataprep.res = dataprep_out,
+          Ylab = "アウトカムのギャップ (経済成長 y)", Xlab = "年",
+          Main = "ギャップ: Serbia - Synthetic Serbia")

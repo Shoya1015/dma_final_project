@@ -87,20 +87,34 @@ summarize_data(data)
 
 ## Empirical Methods
 
-Here, we will briefly explain the empirical methods we use for replication. The original paper used a number of emiprical methods to strengthen the robustness of the results. Among them, we reproduce three methods\footnote{We also worked on Arellano-Bond estimation in table.2. However, it took an enormous amount of computation time and the results obtained were quite different from the original results. In other words, replication failed. However, in the belief that it is desirable to disclose the entire analysis process and results, we disclose the analysis code and results in the appendix.}.
-s
+Here, we will briefly explain the empirical methods we use for replication. The original paper used a number of emiprical methods to strengthen the robustness of the results. Among them, we reproduce three methods\footnote{We also worked on Arellano Bond estimation in table.2. However, it took an enormous amount of computation time and the results obtained were quite different from the original results. In other words, replication failed. However, in the belief that it is desirable to disclose the entire analysis process and results, we disclose the analysis code and results in the appendix.}.
+
 ### Event Study (Figure.1)
+
+First, we will conduct the following event study.
 
 ### Dynamic Liner Panel Model (Table.2)
 
-Next, we estimate the following dynamic linear panel model.
+Next, we will estimate the following dynamic linear panel model.
 \begin{align*}
-&Y_{ct} = \beta D_{ct} + \gamma_1 y_{ct-1} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{1} \\
-&Y_{ct} = \beta D_{ct} + \sum_{j = 1}^2 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{2} \\
-&Y_{ct} = \beta D_{ct} + \sum_{j = 1}^4 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{3} \\
-&Y_{ct} = \beta D_{ct} + \sum_{j = 1}^8 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{4}
+&y_{ct} = \beta D_{ct} + \gamma_1 y_{ct-1} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{1} \\
+&y_{ct} = \beta D_{ct} + \sum_{j = 1}^2 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{2} \\
+&y_{ct} = \beta D_{ct} + \sum_{j = 1}^4 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{3} \\
+&y_{ct} = \beta D_{ct} + \sum_{j = 1}^8 \gamma_j y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \tag{4}
 \end{align*}
 where $y_{ct}$ is the log of GDP per capita in country $c$ at time $t$ and $D_{ct}$ is a dummy variable that takes the value 1 if country $c$ is a democracy at time $t$ and 0 otherwise.
+
+### Instrumental Variable (IV) Method (Table.6)
+
+Finally, we will perform the instrumental variable method. The instrumental variables used in this analysis are as follows.
+\begin{align*}
+Z_{ct} = \frac{1}{|I_c|} \sum_{{c^*} \in I_c} D_{ {c^*} t}. \tag{5}
+\end{align*}
+Using this instrumental variable, we will perform the following 2SLS estimation.
+\begin{align*}
+& y_{ct} = \beta D_{ct} + \sum_{j=1}^p \gamma y_{ct-j} + \alpha_c + \delta_t + \epsilon_{ct}, \\
+& D_{ct} = \sum_{j=1}^q \pi_j Z_{ct-j} + \sum_{j=1}^p \phi_j y_{ct-j} + \theta_c + \mu_t + v_{ct} \tag{6}
+\end{align*}
 
 # Replication
 
@@ -704,13 +718,7 @@ texreg(
 
 \input{output/table_2_FE.tex}
 
-## Figure.2
-
-## Table.3
-
-## Table.4
-
-## Table.5
+## Table.6
 
 # Extention
 
@@ -740,7 +748,7 @@ kable(
   )
 ```
 
-## GMM Estimation for Table.2
+## Arellano Bond Estimation for Table.2
 
 ```{r, echo=TRUE, eval=FALSE}
 data_t2 <- data %>%
