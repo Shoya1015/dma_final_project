@@ -15,3 +15,5 @@ lubridate
 kableExtra
 plm
 texreg
+PanelMatch
+patchwork

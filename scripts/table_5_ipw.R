@@ -220,7 +220,6 @@ results_df <- as.data.frame(t(cell_text))
 colnames(results_df) <- group_names
 
 results_df <- results_df |> 
-  rename("-5 to -1" = "-5 to -1 (years)") |> 
   mutate(years = "ATT on GDP (Log)") 
   
 results_df <- results_df |> 
